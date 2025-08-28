@@ -7,7 +7,8 @@ public class OS {
     public static List<Object> parameters = new ArrayList<>();
     public static Object retVal;
 
-    public enum CallType {SwitchProcess,SendMessage, Open, Close, Read, Seek, Write, GetMapping, CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
+    public enum CallType {SwitchProcess,SendMessage, Open, Close, Read, Seek, Write, GetMapping,
+        CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
     public static CallType currentCall;
 
     private static void startTheKernel() {

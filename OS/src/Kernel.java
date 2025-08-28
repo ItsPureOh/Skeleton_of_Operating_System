@@ -31,13 +31,18 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
+                start();
+                stop();
             }
     }
 
-    private void SwitchProcess() {}
+    private void SwitchProcess() {
+
+    }
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
+
         return 0; // change this
     }
 
