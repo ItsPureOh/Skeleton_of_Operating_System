@@ -10,6 +10,7 @@ public class Scheduler {
         public void run() {
             if (currentPCB != null) {
                 currentPCB.requestStop();
+                //System.out.println(currentPCB);
             }
         }
     };
