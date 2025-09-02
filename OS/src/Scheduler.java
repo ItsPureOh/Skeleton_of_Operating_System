@@ -10,7 +10,6 @@ public class Scheduler {
         public void run() {
             if (currentPCB != null) {
                 currentPCB.requestStop();
-                //System.out.println(currentPCB);
             }
         }
     };
@@ -29,12 +28,24 @@ public class Scheduler {
     }
 
     public void SwitchProcess(){
-        if (!pcbs.isEmpty()) {
-            currentPCB = pcbs.pop();
-            if (!currentPCB.isDone()){
-                pcbs.addLast(currentPCB);
+        // stack is not empty and current process is not done
+        if (!pcbs.isEmpty() & !currentPCB.isDone()) {
+            // if current first process is done, remove it and do not add it to stack again
+            while (pcbs.getFirst().isDone()){
+                pcbs.removeFirst();
             }
+            // remove the first pcb in the stack
+            currentPCB = pcbs.removeFirst();
+            // put that process at the end of the stack
+            pcbs.addLast(currentPCB);
+            // run the first process in the stack
+            currentPCB = pcbs.getFirst();
         }
+        currentPCB = null;
+    }
+
+    public boolean isCurrentPCBRunning() {
+        return currentPCB != null;
     }
 
 }

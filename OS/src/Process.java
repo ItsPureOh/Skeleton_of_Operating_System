@@ -15,8 +15,7 @@ public abstract class Process implements Runnable{
     public abstract void main();
 
     public boolean isStopped() {
-        int temp = semaphore.availablePermits();
-        return temp == 0;
+        return semaphore.availablePermits() == 0;
     }
 
     public boolean isDone() {
@@ -25,7 +24,6 @@ public abstract class Process implements Runnable{
 
     public void start() {
         semaphore.release();
-        thread.start();
     }
 
     public void stop() {

@@ -31,7 +31,6 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
-                start();
                 stop();
             }
     }

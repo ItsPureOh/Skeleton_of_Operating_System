@@ -10,8 +10,10 @@ public class OS {
     public enum CallType {SwitchProcess,SendMessage, Open, Close, Read, Seek, Write, GetMapping,
         CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
     public static CallType currentCall;
+    public static Scheduler scheduler = new Scheduler();
 
     private static void startTheKernel() {
+
     }
 
     public static void switchProcess() {
