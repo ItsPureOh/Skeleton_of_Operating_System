@@ -1,4 +1,6 @@
 public class Kernel extends Process  {
+    Scheduler scheduler = new Scheduler();
+
     public Kernel() {
     }
 
@@ -10,7 +12,7 @@ public class Kernel extends Process  {
                             OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0), (OS.PriorityType) OS.parameters.get(1));
                     case SwitchProcess -> SwitchProcess();
                     /*
-                    // Priority Schduler
+                    // Priority Scheduler
                     case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> Exit();
@@ -31,7 +33,8 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
-                stop();
+                scheduler.SwitchProcess();
+                this.stop();
             }
     }
 

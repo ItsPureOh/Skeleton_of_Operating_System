@@ -5,7 +5,7 @@ import java.util.TimerTask;
 public class Scheduler {
     private LinkedList<PCB> pcbs = new LinkedList<>();
     private Timer timer = new Timer();
-    public static PCB currentPCB;
+    public PCB currentPCB = pcbs.getFirst();
     TimerTask task = new TimerTask() {
         public void run() {
             if (currentPCB != null) {
@@ -18,12 +18,13 @@ public class Scheduler {
         timer.schedule(task, 250);
     }
 
-    public int CreateProcess(UserlandProcess up, OS.PriorityType p){
+    public int CreateProcess(UserlandProcess up, OS.PriorityType p) {
         PCB pcb = new PCB(up, p);
-        if (currentPCB.isDone()) {
+        pcbs.add(pcb);
+
+        if (currentPCB == null) {
             SwitchProcess();
         }
-        pcb = currentPCB;
         return pcb.pid;
     }
 
