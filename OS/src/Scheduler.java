@@ -5,7 +5,9 @@ import java.util.TimerTask;
 public class Scheduler {
     private LinkedList<PCB> pcbs = new LinkedList<>();
     private Timer timer = new Timer();
-    public PCB currentPCB = pcbs.getFirst();
+    public PCB currentPCB = null;
+
+
     TimerTask task = new TimerTask() {
         public void run() {
             if (currentPCB != null) {
@@ -46,7 +48,7 @@ public class Scheduler {
     }
 
     public boolean isCurrentPCBRunning() {
-        return currentPCB != null;
+        return currentPCB != null && !currentPCB.isDone();
     }
 
 }

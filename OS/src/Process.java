@@ -1,11 +1,13 @@
 import java.util.concurrent.Semaphore;
 
 public abstract class Process implements Runnable{
-    Semaphore semaphore = new Semaphore(1);
-    Thread thread = new Thread(this);
+    Semaphore semaphore;
+    Thread thread;
     Boolean quantum;
 
     public Process() {
+        thread = new Thread(this);
+        semaphore = new Semaphore(1);
     }
 
     public void requestStop() {

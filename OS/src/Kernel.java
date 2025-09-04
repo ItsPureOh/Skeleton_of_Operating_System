@@ -1,5 +1,6 @@
 public class Kernel extends Process  {
     Scheduler scheduler = new Scheduler();
+    //scheduler should be contained with in the kernel
 
     public Kernel() {
     }
@@ -33,7 +34,7 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
-                scheduler.SwitchProcess();
+                scheduler.currentPCB.start();
                 this.stop();
             }
     }
@@ -44,8 +45,14 @@ public class Kernel extends Process  {
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
-
-        return 0; // change this
+        while (scheduler.currentPCB == null) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return scheduler.currentPCB.pid;
     }
 
     private void Sleep(int mills) {

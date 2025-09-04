@@ -15,9 +15,15 @@ public class OS {
         //1) Reset the parameters.
         parameters.clear();
         //2) Add the new parameters to the parameter list.
+
         //3) Set the currentCall.
         //4) Switch to the kernel (more on this later)
+        ki.start();
+        if (ki.scheduler.isCurrentPCBRunning()){
+            ki.scheduler.currentPCB.stop();
+        }
         //5) Cast and return the return value.
+
     }
 
     public static void switchProcess() {
