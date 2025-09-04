@@ -1,7 +1,4 @@
 public class Kernel extends Process  {
-    Scheduler scheduler = new Scheduler();
-    //scheduler should be contained with in the kernel
-
     public Kernel() {
     }
 
@@ -13,7 +10,7 @@ public class Kernel extends Process  {
                             OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0), (OS.PriorityType) OS.parameters.get(1));
                     case SwitchProcess -> SwitchProcess();
                     /*
-                    // Priority Scheduler
+                    // Priority Schduler
                     case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> Exit();
@@ -34,25 +31,14 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
-                scheduler.currentPCB.start();
-                this.stop();
             }
     }
 
-    private void SwitchProcess() {
-
-    }
+    private void SwitchProcess() {}
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
-        while (scheduler.currentPCB == null) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return scheduler.currentPCB.pid;
+        return 0; // change this
     }
 
     private void Sleep(int mills) {

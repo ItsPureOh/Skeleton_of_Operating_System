@@ -7,23 +7,10 @@ public class OS {
     public static List<Object> parameters = new ArrayList<>();
     public static Object retVal;
 
-    public enum CallType {SwitchProcess,SendMessage, Open, Close, Read, Seek, Write, GetMapping,
-        CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
+    public enum CallType {SwitchProcess,SendMessage, Open, Close, Read, Seek, Write, GetMapping, CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
     public static CallType currentCall;
 
     private static void startTheKernel() {
-        //1) Reset the parameters.
-        parameters.clear();
-        //2) Add the new parameters to the parameter list.
-
-        //3) Set the currentCall.
-        //4) Switch to the kernel (more on this later)
-        ki.start();
-        if (ki.scheduler.isCurrentPCBRunning()){
-            ki.scheduler.currentPCB.stop();
-        }
-        //5) Cast and return the return value.
-
     }
 
     public static void switchProcess() {
@@ -39,12 +26,17 @@ public class OS {
     }
 
     public enum PriorityType {realtime, interactive, background}
+
     public static int CreateProcess(UserlandProcess up) {
         return  CreateProcess(up,PriorityType.interactive);
     }
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     public static int CreateProcess(UserlandProcess up, PriorityType priority) {
+        parameters.clear();
+        parameters.add(up);
+        parameters.add(priority);
+        currentCall = CallType.CreateProcess;
         startTheKernel();
         return (int) retVal;
     }
