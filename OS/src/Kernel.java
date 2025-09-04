@@ -31,12 +31,16 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
+                // call start() on the next process to run
+                // Call stop() on myself, so that only one process is running
+                this.stop();
             }
     }
 
     private void SwitchProcess() {}
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
+    // privileged implementation that build PCB, puts it on the scheduler's queue and return PID
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
         return 0; // change this
     }
