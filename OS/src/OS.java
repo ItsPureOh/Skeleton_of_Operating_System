@@ -11,6 +11,25 @@ public class OS {
     public static CallType currentCall;
 
     private static void startTheKernel() {
+        ki.start();
+        //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
+        PCB cur = ki.getCurrentRunning();
+        if (cur != null) {
+            cur.stop();
+        }
+        /*
+        If there is no current process running, create a loop in OS that calls Thread.sleep(10)
+            until the return value is set by the kernel.
+         */
+        else{
+            while (retVal == null) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     public static void switchProcess() {

@@ -1,4 +1,5 @@
 public class Kernel extends Process  {
+    Scheduler scheduler = new Scheduler();
     public Kernel() {
     }
 
@@ -7,7 +8,8 @@ public class Kernel extends Process  {
             while (true) { // Warning on infinite loop is OK...
                 switch (OS.currentCall) { // get a job from OS, do it
                     case CreateProcess ->  // Note how we get parameters from OS and set the return value
-                            OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0), (OS.PriorityType) OS.parameters.get(1));
+                            OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0),
+                                    (OS.PriorityType) OS.parameters.get(1));
                     case SwitchProcess -> SwitchProcess();
                     /*
                     // Priority Schduler
@@ -32,17 +34,31 @@ public class Kernel extends Process  {
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
                 // call start() on the next process to run
+                if (scheduler.currentRunning != null) {
+                    scheduler.currentRunning.start();
+                }
+                else{
+                    System.out.println("No currently running Process");
+                }
                 // Call stop() on myself, so that only one process is running
                 this.stop();
             }
     }
 
-    private void SwitchProcess() {}
+    private void SwitchProcess() {
+        scheduler.SwitchProcess();
+    }
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     // privileged implementation that build PCB, puts it on the scheduler's queue and return PID
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
-        return 0; // change this
+        scheduler.CreateProcess(up, priority);
+        return scheduler.currentRunning.pid;
+    }
+
+    // Accessor
+    public PCB getCurrentRunning(){
+        return scheduler.currentRunning;
     }
 
     private void Sleep(int mills) {
