@@ -11,9 +11,11 @@ public class OS {
     public static CallType currentCall;
 
     private static void startTheKernel() {
+        // start the kernel
         ki.start();
         //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
         PCB cur = ki.getCurrentRunning();
+        // if currently running a process, call stop on it
         if (cur != null) {
             cur.stop();
         }

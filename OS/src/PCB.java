@@ -2,10 +2,13 @@ public class PCB { // Process Control Block
     private static int nextPid = 1;
     public int pid;
     private OS.PriorityType priority;
+    // User land process
     private UserlandProcess process;
 
     PCB(UserlandProcess up, OS.PriorityType priority) {
+        // assigning a new pid to a new process created
         this.pid = nextPid;
+        // increment the pid for next process in the future
         nextPid++;
         this.process = up;
     }
@@ -23,8 +26,9 @@ public class PCB { // Process Control Block
     }
 
     public void stop() {
-        /* calls userlandprocess’ stop. Loops with Thread.sleep() until ulp.isStopped() is true.  */
+        /* calls userlandprocess’ stop. Loops with Thread.sleep() until the up.isStopped() is true.  */
         process.stop();
+
         while(!process.isStopped()) {
             try {
                 Thread.sleep(10);

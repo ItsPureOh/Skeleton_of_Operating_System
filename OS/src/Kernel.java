@@ -33,14 +33,14 @@ public class Kernel extends Process  {
                      */
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
-                // call start() on the next process to run
+                // call start() on the next process to run, make sure kernel is running right now
                 if (scheduler.currentRunning != null) {
                     scheduler.currentRunning.start();
                 }
                 else{
-                    System.out.println("No currently running Process");
+                    System.out.println("Kernel is not running");
                 }
-                // Call stop() on myself, so that only one process is running
+                // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
             }
     }
@@ -51,12 +51,13 @@ public class Kernel extends Process  {
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     // privileged implementation that build PCB, puts it on the scheduler's queue and return PID
+    // enqueue the process in scheduler
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
         scheduler.CreateProcess(up, priority);
         return scheduler.currentRunning.pid;
     }
 
-    // Accessor
+    // Accessor get current running process
     public PCB getCurrentRunning(){
         return scheduler.currentRunning;
     }
