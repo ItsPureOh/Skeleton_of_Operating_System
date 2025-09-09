@@ -11,11 +11,12 @@ public class Kernel extends Process  {
                             OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0),
                                     (OS.PriorityType) OS.parameters.get(1));
                     case SwitchProcess -> SwitchProcess();
-                    /*
+
                     // Priority Schduler
                     case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> Exit();
+                    /*
                     // Devices
                     case Open ->
                     case Close ->
