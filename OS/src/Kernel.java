@@ -64,13 +64,21 @@ public class Kernel extends Process  {
     }
 
     private void Sleep(int mills) {
+        scheduler.Sleep(mills);
+        scheduler.SwitchProcess();
     }
 
     private void Exit() {
+        // unscheduled the current process so that it never gets run again
+        if (scheduler.currentRunning != null) {
+            scheduler.currentRunning = null;
+        }
+        //schedule should choose something else to run
+        SwitchProcess();
     }
 
     private int GetPid() {
-        return 0; // change this
+        return scheduler.currentRunning.pid;
     }
 
     private int Open(String s) {

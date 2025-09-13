@@ -4,6 +4,9 @@ public class PCB { // Process Control Block
     private OS.PriorityType priority;
     // User land process
     private UserlandProcess process;
+    private long wakeupTime;
+    public int timeoutFrequency = 0;
+    public boolean timeout = false;
 
     PCB(UserlandProcess up, OS.PriorityType priority) {
         // assigning a new pid to a new process created
@@ -49,5 +52,13 @@ public class PCB { // Process Control Block
 
     public void setPriority(OS.PriorityType newPriority) {
         priority = newPriority;
+    }
+
+    public void setWakeupTime(long newWakeupTime) {
+        this.wakeupTime = newWakeupTime;
+    }
+
+    public long getWakeupTime() {
+        return wakeupTime;
     }
 }

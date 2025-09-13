@@ -66,27 +66,12 @@ public class OS {
 
     public static int GetPID() {
         parameters.clear();
-        // this returns the PID of the currently running process.
-        PCB cur = ki.getCurrentRunning();
-        if (cur != null) {
-            retVal = cur.pid;
-        }
-        else{
-            System.out.println("No Current Process");
-            System.exit(0);
-        }
         currentCall = CallType.GetPID;
         startTheKernel();
         return (int) retVal;
     }
 
     public static void Exit() {
-        //should unschedule the current process so that it never gets run again (the schedule should choose something else to run).
-        PCB cur = ki.getCurrentRunning();
-        if (cur != null) {
-            // to be continued
-        }
-        //unchangeable
         parameters.clear();
         currentCall = CallType.Exit;
         startTheKernel();
