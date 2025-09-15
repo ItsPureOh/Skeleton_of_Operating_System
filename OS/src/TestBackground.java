@@ -1,3 +1,8 @@
+/**
+ * Test process to simulate background work.
+ * Prints its progress, sleeps briefly to yield CPU time,
+ * and then finishes after 6 iterations.
+ */
 public class TestBackground extends UserlandProcess{
     @Override
     public void main() {

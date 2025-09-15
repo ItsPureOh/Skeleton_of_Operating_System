@@ -46,28 +46,50 @@ public class Kernel extends Process  {
             }
     }
 
+    /**
+     * Invokes the scheduler to switch from the current process
+     * to the next runnable process.
+     * @return void
+     */
     private void SwitchProcess() {
         scheduler.SwitchProcess();
     }
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
-    // privileged implementation that build PCB, puts it on the scheduler's queue and return PID
-    // enqueue the process in scheduler
+    /**
+     * Creates a new process, enqueues it in the scheduler, and returns its PID.
+     * @param up the userland process to create
+     * @param priority the priority level of the process
+     * @return int the PID of the created process
+     */
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
         scheduler.CreateProcess(up, priority);
         return scheduler.currentRunning.pid;
     }
 
-    // Accessor get current running process
+    /**
+     * Returns the PCB of the currently running process.
+     * @return PCB the current running process
+     */
     public PCB getCurrentRunning(){
         return scheduler.currentRunning;
     }
 
+    /**
+     * Puts the current process to sleep for the given time in milliseconds,
+     * then switches to another process.
+     * @param mills the sleep duration in milliseconds
+     * @return void
+     */
     private void Sleep(int mills) {
         scheduler.Sleep(mills);
         scheduler.SwitchProcess();
     }
 
+    /**
+     * Terminates the current process and switches to the next runnable process.
+     * @return void
+     */
     private void Exit() {
         // unscheduled the current process so that it never gets run again
         if (scheduler.currentRunning != null) {
@@ -77,6 +99,10 @@ public class Kernel extends Process  {
         SwitchProcess();
     }
 
+    /**
+     * Returns the PID of the currently running process.
+     * @return int the PID of the current process
+     */
     private int GetPid() {
         return scheduler.currentRunning.pid;
     }

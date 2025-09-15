@@ -2,9 +2,8 @@ public class PCB { // Process Control Block
     private static int nextPid = 1;
     public int pid;
     private OS.PriorityType priority;
-    // User land process
     private UserlandProcess process;
-    private long wakeupTime;
+    private long wakeupTime;    // time (in milliseconds) when this process should wake up from sleep and return to the ready queue.
     public int timeoutFrequency = 0;
     public boolean timeout = false;
 
@@ -28,8 +27,14 @@ public class PCB { // Process Control Block
         process.requestStop();
     }
 
+    /**
+     * Stops the associated userland process.
+     * Calls its stop method and waits in a loop until
+     * the process confirms it has fully stopped.
+     * @return void
+     */
     public void stop() {
-        /* calls userlandprocess’ stop. Loops with Thread.sleep() until the up.isStopped() is true.  */
+        /* calls user land process’ stop. Loops with Thread.sleep() until the up.isStopped() is true.  */
         process.stop();
 
         while(!process.isStopped()) {
@@ -54,10 +59,21 @@ public class PCB { // Process Control Block
         priority = newPriority;
     }
 
+    /**
+     * Sets the absolute system time (in milliseconds) when this process
+     * should wake up from sleep.
+     * @param newWakeupTime the wake-up time in milliseconds since epoch
+     * @return void
+     */
     public void setWakeupTime(long newWakeupTime) {
         this.wakeupTime = newWakeupTime;
     }
 
+    /**
+     * Returns the absolute system time (in milliseconds) when this process
+     * is scheduled to wake up.
+     * @return long the wake-up time in milliseconds since epoch
+     */
     public long getWakeupTime() {
         return wakeupTime;
     }

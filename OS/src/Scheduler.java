@@ -9,7 +9,7 @@ public class Scheduler {
     private Timer timer = new Timer(true);
     // Reference to the process that is currently running.
     public PCB currentRunning;
-    //random
+    //random init
     Random rand = new Random();
     // new list for sleeping processes
     private LinkedList<PCB> sleepingQueue = new LinkedList<>();
@@ -33,15 +33,18 @@ public class Scheduler {
     }
 
     /**
-     * Creates a new process and adds it to the scheduler queue.
-     * @param up The userland process to wrap in a PCB.
-     * @param p The priority (not used in Assignment 1, but needed for later).
-     * @return The process ID (pid) of the new process.
+     * Creates a new process, wraps it in a PCB, and enqueues it in the appropriate
+     * priority queue managed by the scheduler. If no process is currently running,
+     * immediately switches to a runnable process.
+     *
+     * @param up the userland process to wrap in a PCB
+     * @param p the priority level of the new process (realtime, interactive, or background)
+     * @return int the PID of the newly created process
      */
     public int CreateProcess(UserlandProcess up, OS.PriorityType p){
         // Wrap the user process in a PCB (gives it a PID, etc.)
         PCB pcb = new PCB(up, p);
-        // add process to it's corresponding list
+        // enqueues it in the appropriate priority queue
         if (p == OS.PriorityType.realtime){
             realtimeProcess.addLast(pcb);
         }
@@ -60,50 +63,80 @@ public class Scheduler {
     }
 
     /**
-     * Switches from the current process to the next one in the queue.
-     * Implements round-robin scheduling:
-     * - If the current process is still alive, it is moved to the back of the queue.
-     * - Dead processes are skipped and not re-added.
-     * - The next process in the queue becomes the current running process.
+     * Switches execution from the current process to the next runnable process.
+     * Steps performed:
+     *   <1>Demotes the current process if it has timed out too many times.
+     *   <2>Requeues the current process if it is not finished.
+     *   <3>Wakes up any processes whose sleep time has expired.
+     *   <4>Selects the next process to run using probabilistic scheduling:
+     *       60% realtime, 30% interactive, 10% background (if available).
+     *       Falls back to interactive or background if higher priorities are empty.
+     *
+     * @return void
      */
     public void SwitchProcess(){
         PCB cur = currentRunning;
         PCB next = null;
         currentRunning = null;
 
-        // check timeout for current process
+        // Check if the current process timed out and apply demotion if needed
         if (cur != null) {
             Demote(cur);
         }
+        // If the current process is not finished, requeue it based on priority
         if (cur != null && !cur.isDone()){
             Requeue(cur);
         }
 
-        // check sleep process should be wakening
+        // Wake up sleeping processes whose timers have expired
         SleepingCheck();
 
-        // Pull processes off the queue until we find one that isn’t finished.
-        // 6/10 we will run a real-time process, 3/10 we will run an interactive process (if there is one) otherwise 1/10 we will run a background process.
+        // Select the next process to run (probabilistic choice by priority)
         next = ProbabilisticProcessPicking();
+        // assign the next process as running
         currentRunning = next;
     }
 
+    /**
+     * Puts the currently running process to sleep for the given duration.
+     *
+     * Steps:
+     * - Compute the absolute wake-up time.
+     * - Store this in the PCB.
+     * - Move the process into the sleeping queue.
+     * - Clear the current running slot so the scheduler can pick another process.
+     *
+     * @param milliseconds the duration the process should sleep, in ms
+     */
     public void Sleep(int milliseconds){
-        // set the wakeupTime to process
+        // Calculate when the process should wake up
         long wakeupTime = System.currentTimeMillis() + milliseconds;
         currentRunning.setWakeupTime(wakeupTime);
+
         // add that sleeping process to Sleeping Process List
         sleepingQueue.addLast(currentRunning);
+
         //testing
         System.out.println("process: " + currentRunning.pid + "sleeping now");
-        // set the current Running process to null
+
+        // Clear currentRunning so the scheduler can select another process
         currentRunning = null;
     }
 
+    /**
+     * Checks if the given process should be demoted due to repeated timeouts.
+     * - Increments the timeout counter if the process timed out.
+     * - Demotes from realtime → interactive or interactive → background after 5 consecutive timeouts.
+     * - Resets the counter if the process yielded voluntarily.
+     *
+     * @param currentRunningProcess the process being checked for demotion
+     */
     private void Demote(PCB currentRunningProcess){
         if (currentRunningProcess.timeout){
             currentRunningProcess.timeout = false;
             currentRunningProcess.timeoutFrequency++;
+
+            // Demote priority if process timed out 5 times in a row
             if (currentRunningProcess.timeoutFrequency >= 5){
                 if (currentRunningProcess.getPriority() == OS.PriorityType.realtime){
                     currentRunningProcess.setPriority(OS.PriorityType.interactive);
@@ -111,21 +144,28 @@ public class Scheduler {
                 else if (currentRunningProcess.getPriority() == OS.PriorityType.interactive){
                     currentRunningProcess.setPriority(OS.PriorityType.background);
                 }
-                currentRunningProcess.timeoutFrequency = 0;
+                currentRunningProcess.timeoutFrequency = 0; // reset after demotion
             }
         }
         else {
-            currentRunningProcess.timeoutFrequency = 0;
+            currentRunningProcess.timeoutFrequency = 0; // reset if process yielded voluntarily
         }
     }
 
+    /**
+     * Places the given process back into the appropriate ready queue
+     * based on its current priority. Processes that are finished
+     * are not requeued (handled by caller).
+     *
+     * @param currentRunningProcess the process to requeue
+     */
     private void Requeue(PCB currentRunningProcess){
         /*
         Nothing is currently running (we are at startup). We just don’t put null on our list.
         The user process is done() – we just don’t add it to the list.
         If there*was a running process, and it’s not finished, put it back into the queue.
          */
-        // put process back to corresponding queue list
+        // Add process to the correct queue by priority
         if (currentRunningProcess.getPriority() == OS.PriorityType.realtime){
             realtimeProcess.addLast(currentRunningProcess);
         }
@@ -137,13 +177,22 @@ public class Scheduler {
         }
     }
 
+    /**
+     * Moves any processes whose sleep time has expired
+     * from the sleeping queue back into their appropriate
+     * ready queues.
+     *
+     * @return void
+     */
     private void SleepingCheck(){
-        // check sleep process should be wakening
         long now = System.currentTimeMillis();
+
+        // check sleep process should be wakening
         for (int i = 0; i < sleepingQueue.size(); i++) {
             PCB p = sleepingQueue.get(i);
+            // If process wake-up time has passed, requeue it
             if (p.getWakeupTime() <= now) {
-                // move to the correct ready queue
+                // move to the correct queue
                 if (p.getPriority() == OS.PriorityType.realtime) {
                     realtimeProcess.addLast(p);
                 } else if (p.getPriority() == OS.PriorityType.interactive) {
@@ -158,9 +207,19 @@ public class Scheduler {
         }
     }
 
+    /**
+     * Selects the next process to run using probabilistic scheduling.
+     * - If realtime processes exist: 60% realtime, 30% interactive (if available),
+     *   10% background (if available).
+     * - If only interactive/background exist: 75% interactive, 25% background.
+     * - If only background exists: always background.
+     * - If no processes exist: prints error and exits.
+     *
+     * @return PCB the next process chosen to run
+     */
     private PCB ProbabilisticProcessPicking(){
         PCB next = null;
-        // Pull processes off the queue until we find one that isn’t finished.
+
         // 6/10 we will run a real-time process, 3/10 we will run an interactive process (if there is one) otherwise 1/10 we will run a background process.
         if (!realtimeProcess.isEmpty()) {
             int r = rand.nextInt(10); // 0–9
@@ -185,6 +244,7 @@ public class Scheduler {
             next = backgroundProcess.removeFirst();
         }
         else {
+            // Debug
             System.out.println("Error, No Process Exists");
             System.exit(0);
         }
