@@ -59,6 +59,7 @@ public class Scheduler {
         if (currentRunning == null) {
             SwitchProcess();
         }
+        System.out.println("Process: " + pcb.pid + "Created");
         return pcb.pid;
     }
 

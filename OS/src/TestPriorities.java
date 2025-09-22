@@ -4,8 +4,7 @@
 public class TestPriorities extends UserlandProcess{
     @Override
     public void main() {
-
-        System.out.println(OS.GetPID() + " priority: " + );
+        System.out.println("Hello World");
         cooperate();
     }
 }

@@ -49,9 +49,6 @@ public class OS {
 
     public enum PriorityType {realtime, interactive, background}
 
-    public static int CreateProcess(UserlandProcess up) {
-        return  CreateProcess(up,PriorityType.interactive);
-    }
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     // this is the function that User Mode Calling to create a new process
