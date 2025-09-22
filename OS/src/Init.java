@@ -6,9 +6,8 @@ public class Init extends UserlandProcess{
         //OS.CreateProcess(new TestPriorities(), OS.PriorityType.background);
         //OS.CreateProcess(new TestPriorities(), OS.PriorityType.interactive);
         //OS.CreateProcess(new TestPriorities(), OS.PriorityType.realtime);
-        System.out.println("Test");
 
         // Stoping the Init process
-        OS.Exit();
+        OS.Exit();  // terminate the current running process than switch to the next process
     }
 }
