@@ -80,6 +80,7 @@ public class Scheduler {
         PCB next = null;
         currentRunning = null;
 
+
         // Check if the current process timed out and apply demotion if needed
         if (cur != null) {
             Demote(cur);
@@ -96,6 +97,10 @@ public class Scheduler {
         next = ProbabilisticProcessPicking();
         // assign the next process as running
         currentRunning = next;
+
+        System.out.println("Switching from " +
+                (cur == null ? "none" : cur.pid) +
+                " to " + (next == null ? "none" : next.pid));
     }
 
     /**

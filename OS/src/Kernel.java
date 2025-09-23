@@ -98,7 +98,6 @@ public class Kernel extends Process  {
         //schedule should choose something else to run
         SwitchProcess();
     }
-
     /**
      * Returns the PID of the currently running process.
      * @return int the PID of the current process
