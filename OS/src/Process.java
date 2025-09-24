@@ -10,6 +10,7 @@ public abstract class Process implements Runnable{
     Semaphore semaphore = new Semaphore(0);
     // set the fixed time for process to run
     Boolean quantumExpired = false;
+    Boolean finsihed = false;
 
     public Process() {
         thread.start();
@@ -29,7 +30,7 @@ public abstract class Process implements Runnable{
 
     /** @return true if the underlying thread has terminated. */
     public boolean isDone() {
-        return !thread.isAlive();
+        return finsihed;
     }
 
     /** Allow this process to run (release one permit so the thread can proceed). */
@@ -46,9 +47,11 @@ public abstract class Process implements Runnable{
      * Thread body: waits at the gate until start() is called, then executes main().
      * NEVER call run() directly; call start() to schedule the process.
      */
-    public void run() { // This is called by the Thread - NEVER CALL THIS!!!
-        semaphore.acquireUninterruptibly();
-        main();
+    public void run() { // called by the JVM thread system — NEVER CALL THIS YOURSELF
+        semaphore.acquireUninterruptibly(); // block until process is started
+        main();                             // execute the userland process main()
+        finsihed = true;                    // mark process as done
+        OS.switchProcess();                 // ask kernel to pick next process
     }
 
     /**

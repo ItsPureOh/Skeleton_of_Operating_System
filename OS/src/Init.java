@@ -1,13 +1,22 @@
+/**
+ * Init process.
+ * This is the first userland process started by the OS.
+ * It creates several test processes with different priorities
+ * to exercise the scheduler, then terminates itself.
+ */
 public class Init extends UserlandProcess{
     @Override
     public void main() {
-        // Testing
-        //OS.CreateProcess(new IdleProcess(), OS.PriorityType.background);
+        // Create three TestPriorities processes with different priorities
+        OS.CreateProcess(new TestPriorities("rt"), OS.PriorityType.realtime);
         OS.CreateProcess(new TestPriorities("bg"), OS.PriorityType.background);
         OS.CreateProcess(new TestPriorities("ia"), OS.PriorityType.interactive);
-        OS.CreateProcess(new TestPriorities("rt"), OS.PriorityType.realtime);
+
+        // Create additional realtime processes for testing demotion/sleep behavior
+        OS.CreateProcess(new TestRealtimeBusy(), OS.PriorityType.realtime);
+        OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.realtime);
 
         // Stoping the Init process
-        OS.Exit();  // terminate the current running process than switch to the next process
+        OS.Exit();  // unschedule Init, scheduler picks the next process
     }
 }

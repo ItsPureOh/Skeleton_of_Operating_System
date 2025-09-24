@@ -1,3 +1,12 @@
+/**
+ * PCB (Process Control Block).
+ * Holds metadata and control for a single process:
+ * - PID
+ * - priority
+ * - reference to the userland process
+ * - sleep/wakeup time
+ * - timeout information for demotion
+ */
 public class PCB { // Process Control Block
     private static int nextPid = 1;
     public int pid;
@@ -7,12 +16,14 @@ public class PCB { // Process Control Block
     public int timeoutFrequency = 0;
     public boolean timeout = false;
 
+    // Constructor assigns PID and stores priority/process reference
     PCB(UserlandProcess up, OS.PriorityType priority) {
         // assigning a new pid to a new process created
         this.pid = nextPid;
         // increment the pid for next process in the future
         nextPid++;
         this.process = up;
+        this.priority = priority;
     }
 
     public String getName() {
@@ -36,7 +47,6 @@ public class PCB { // Process Control Block
     public void stop() {
         /* calls user land process’ stop. Loops with Thread.sleep() until the up.isStopped() is true.  */
         process.stop();
-
         while(!process.isStopped()) {
             try {
                 Thread.sleep(10);
@@ -77,4 +87,6 @@ public class PCB { // Process Control Block
     public long getWakeupTime() {
         return wakeupTime;
     }
+
+
 }

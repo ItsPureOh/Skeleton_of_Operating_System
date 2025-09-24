@@ -1,18 +1,22 @@
+/**
+ * GoodbyeWorld process.
+ * A simple test program that repeatedly prints "Goodbye world".
+ * It cooperates with the scheduler (via cooperate())
+ * and sleeps briefly between prints to simulate work and
+ * make output easier to follow.
+ */
 public class GoodbyeWorld extends UserlandProcess{
-    //Test Program
     @Override
     public void main() {
-        // print String then call the kernel
+        // Run forever
         while(true){
-            System.out.println("Goodbye world");
+            System.out.println("Goodbye world");    // print message
             cooperate();
-
             try {
-                Thread.sleep(50);
+                Thread.sleep(50);       // pause to slow down output
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-
         }
     }
 }

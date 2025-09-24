@@ -29,7 +29,7 @@ public class Scheduler {
                     currentRunning.requestStop();
                 }
             }
-        }, 250, 250);
+        }, 0, 250);
     }
 
     /**
@@ -47,19 +47,22 @@ public class Scheduler {
         // enqueues it in the appropriate priority queue
         if (p == OS.PriorityType.realtime){
             realtimeProcess.addLast(pcb);
+            System.out.println("Created process " + pcb.pid + " (realtime)");
         }
         else if (p == OS.PriorityType.interactive){
             interactiveProcess.addLast(pcb);
+            System.out.println("Created process " + pcb.pid + " (interactive)");
         }
         else{
             backgroundProcess.addLast(pcb);
+            System.out.println("Created process " + pcb.pid + " (background)");
         }
 
         // if nothing else is running, call switchProcess
         if (currentRunning == null) {
             SwitchProcess();
         }
-        System.out.println("Process: " + pcb.pid + "Created");
+        //System.out.println("Process: " + pcb.pid + "Created");
         return pcb.pid;
     }
 
@@ -82,11 +85,9 @@ public class Scheduler {
 
 
         // Check if the current process timed out and apply demotion if needed
-        if (cur != null) {
+        // the current process is not finished, requeue it based on priority
+        if (cur != null && !cur.isDone()) {
             Demote(cur);
-        }
-        // If the current process is not finished, requeue it based on priority
-        if (cur != null && !cur.isDone()){
             Requeue(cur);
         }
 
@@ -94,13 +95,23 @@ public class Scheduler {
         SleepingCheck();
 
         // Select the next process to run (probabilistic choice by priority)
-        next = ProbabilisticProcessPicking();
-        // assign the next process as running
-        currentRunning = next;
+        do {
+            next = ProbabilisticProcessPicking();
+        } while (next == null || next.isDone());
 
         System.out.println("Switching from " +
-                (cur == null ? "none" : cur.pid) +
-                " to " + (next == null ? "none" : next.pid));
+                (cur == null ? "none" : cur.pid + "(" +
+                        (cur.getPriority() == OS.PriorityType.realtime ? "realtime" :
+                                cur.getPriority() == OS.PriorityType.interactive ? "interactive" :
+                                        "background") + ")") +
+                " to " +
+                (next == null ? "none" : next.pid + "(" +
+                        (next.getPriority() == OS.PriorityType.realtime ? "realtime" :
+                                next.getPriority() == OS.PriorityType.interactive ? "interactive" :
+                                        "background") + ")"));
+
+        // assign the next process as running
+        currentRunning = next;
     }
 
     /**
@@ -166,6 +177,14 @@ public class Scheduler {
      * @param currentRunningProcess the process to requeue
      */
     private void Requeue(PCB currentRunningProcess){
+
+        if (currentRunningProcess == null){
+            return;
+        }
+        if (currentRunningProcess.isDone()){
+            return;
+        }
+
         /*
         Nothing is currently running (we are at startup). We just don’t put null on our list.
         The user process is done() – we just don’t add it to the list.
@@ -192,7 +211,6 @@ public class Scheduler {
      */
     private void SleepingCheck(){
         long now = System.currentTimeMillis();
-
         // check sleep process should be wakening
         for (int i = 0; i < sleepingQueue.size(); i++) {
             PCB p = sleepingQueue.get(i);
@@ -249,11 +267,13 @@ public class Scheduler {
         else if (!backgroundProcess.isEmpty()) {
             next = backgroundProcess.removeFirst();
         }
+        /*
         else {
             // Debug
             System.out.println("Error, No Process Exists");
             System.exit(0);
         }
+         */
         return next;
     }
 }

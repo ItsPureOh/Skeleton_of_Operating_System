@@ -5,17 +5,24 @@ public class Kernel extends Process  {
 
     @Override
     public void main() {
-            while (true) { // Warning on infinite loop is OK...
-                switch (OS.currentCall) { // get a job from OS, do it
-                    case CreateProcess ->  // Note how we get parameters from OS and set the return value
+            while (true) { // kernel runs forever
+                // Dispatch based on the current system call from a user process
+                switch (OS.currentCall) {
+                    // extract parameters and create a new process
+                    case CreateProcess ->
                             OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0),
                                     (OS.PriorityType) OS.parameters.get(1));
+                    // context switch request
                     case SwitchProcess -> SwitchProcess();
 
-                    // Priority Schduler
+                    // Priority scheduler calls
                     case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
-                    case Exit -> Exit();
+                    case Exit -> {
+                        Exit();
+                        //schedule should choose something else to run
+                        OS.switchProcess();
+                    }
                     /*
                     // Devices
                     case Open ->
@@ -93,10 +100,9 @@ public class Kernel extends Process  {
     private void Exit() {
         // unscheduled the current process so that it never gets run again
         if (scheduler.currentRunning != null) {
+            System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
             scheduler.currentRunning = null;
         }
-        //schedule should choose something else to run
-        SwitchProcess();
     }
     /**
      * Returns the PID of the currently running process.
