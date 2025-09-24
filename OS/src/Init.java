@@ -12,7 +12,6 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestPriorities("bg"), OS.PriorityType.background);
         OS.CreateProcess(new TestPriorities("ia"), OS.PriorityType.interactive);
 
-
         // Create additional realtime processes for testing demotion/sleep behavior
         OS.CreateProcess(new TestRealtimeBusy(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.realtime);
