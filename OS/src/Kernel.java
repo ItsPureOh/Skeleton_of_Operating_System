@@ -1,5 +1,5 @@
 public class Kernel extends Process  {
-    Scheduler scheduler = new Scheduler();
+    private Scheduler scheduler = new Scheduler();
     public Kernel() {
     }
 
@@ -20,8 +20,6 @@ public class Kernel extends Process  {
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> {
                         Exit();
-                        //schedule should choose something else to run
-                        OS.switchProcess();
                     }
                     /*
                     // Devices
@@ -103,6 +101,8 @@ public class Kernel extends Process  {
             System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
             scheduler.currentRunning = null;
         }
+        //schedule should choose something else to run
+        OS.switchProcess();
     }
     /**
      * Returns the PID of the currently running process.
