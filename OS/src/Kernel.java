@@ -18,16 +18,15 @@ public class Kernel extends Process  {
                     // Priority scheduler calls
                     case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
-                    case Exit -> {
-                        Exit();
-                    }
-                    /*
+                    case Exit -> Exit();
+
                     // Devices
                     case Open ->
                     case Close ->
                     case Read ->
                     case Seek ->
                     case Write ->
+                    /*
                     // Messages
                     case GetPIDByName ->
                     case SendMessage ->
