@@ -12,11 +12,11 @@ public class Scheduler {
     //random init
     Random rand = new Random();
     // new list for sleeping processes
-    private LinkedList<PCB> sleepingQueue = new LinkedList<>();
+    final private LinkedList<PCB> sleepingQueue = new LinkedList<>();
     // priority queue list
-    private LinkedList<PCB> realtimeProcess = new LinkedList<>();
-    private LinkedList<PCB> interactiveProcess = new LinkedList<>();
-    private LinkedList<PCB> backgroundProcess = new LinkedList<>();
+    final private LinkedList<PCB> realtimeProcess = new LinkedList<>();
+    final private LinkedList<PCB> interactiveProcess = new LinkedList<>();
+    final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
 
 
     public Scheduler() {
@@ -82,7 +82,6 @@ public class Scheduler {
         PCB cur = currentRunning;
         PCB next = null;
         currentRunning = null;
-
 
         // Check if the current process timed out and apply demotion if needed
         // the current process is not finished, requeue it based on priority
