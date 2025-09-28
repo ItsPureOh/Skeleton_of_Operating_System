@@ -2,27 +2,33 @@ public class VirtualFileSystem implements Device{
     private final int MaximumFiles = 10;
     private Device[] devices = new Device[MaximumFiles];
     private int[] deviceId = new int[MaximumFiles];
+    private RandomDevice fileRandom = new RandomDevice();
+    private FakeFileSystem fileFake = new FakeFileSystem();
 
     @Override
     public int open(String s) {
         String [] result = s.split("\\s+", 2);
+
         for(int i = 0; i < MaximumFiles; i++){
             // empty slot
             if (devices[i] == null){
                 if (result[0].equals("random")) {
-                    RandomDevice file = new RandomDevice();
                     if (result.length == 2){
-                        file.open(result[1]);
+                        deviceId[i] = fileRandom.open(result[1]);
                     }
                     else{
-                        file.open(null);
+                        deviceId[i] = fileRandom.open(null);
                     }
-                    devices[i] = ;
+                    devices[i] = fileRandom;
                     return i;
                 }
                 else if (result[0].equals("file")) {
-                    FakeFileSystem file = new FakeFileSystem();
-                    file.open(result[1]);
+                    // precondition check
+                    if (result.length < 2){
+                        throw new IllegalArgumentException("Need File's Name Please!");
+                    }
+                    deviceId[i] = fileFake.open(result[1]);
+                    devices[i] = fileFake;
                     return i;
                 }
                 else{
@@ -30,26 +36,31 @@ public class VirtualFileSystem implements Device{
                 }
             }
         }
+        // if there is no empty slot
         return -1;
     }
 
     @Override
     public void close(int id) {
-
+        if (devices[id] != null){
+            devices[id].close(deviceId[id]);
+            devices[id] = null;
+            deviceId[id] = -1;
+        }
     }
 
     @Override
     public byte[] read(int id, int size) {
-        return new byte[0];
+        return devices[id].read(deviceId[id], size);
     }
 
     @Override
     public void seek(int id, int to) {
-
+        devices[id].seek(deviceId[id], to);
     }
 
     @Override
     public int write(int id, byte[] data) {
-        return 0;
+        return devices[id].write(deviceId[id], data);
     }
 }

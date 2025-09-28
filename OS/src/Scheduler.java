@@ -275,4 +275,8 @@ public class Scheduler {
          */
         return next;
     }
+
+    public PCB getCurrentRunningProcess(){
+        return currentRunning;
+    }
 }
