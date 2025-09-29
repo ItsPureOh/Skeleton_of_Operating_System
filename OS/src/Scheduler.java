@@ -17,9 +17,11 @@ public class Scheduler {
     final private LinkedList<PCB> realtimeProcess = new LinkedList<>();
     final private LinkedList<PCB> interactiveProcess = new LinkedList<>();
     final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
+    //kernel ref.
+    private Kernel ki;
 
 
-    public Scheduler() {
+    public Scheduler(Kernel k) {
         // Timer runs every 250ms (quantum length).
         timer.scheduleAtFixedRate(new TimerTask() {
             public void run() {
@@ -30,6 +32,7 @@ public class Scheduler {
                 }
             }
         }, 0, 250);
+        ki = k;
     }
 
     /**
@@ -181,6 +184,7 @@ public class Scheduler {
             return;
         }
         if (currentRunningProcess.isDone()){
+            ki.cleanUpDevice(currentRunningProcess);
             return;
         }
 

@@ -7,6 +7,7 @@
 public class Init extends UserlandProcess{
     @Override
     public void main() {
+        /*
         // Create three TestPriorities processes with different priorities
         OS.CreateProcess(new TestPriorities("rt"), OS.PriorityType.realtime);
         OS.CreateProcess(new TestPriorities("bg"), OS.PriorityType.background);
@@ -20,6 +21,10 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
+         */
+
+
+        OS.CreateProcess(new DeviceTest("Test 1"), OS.PriorityType.realtime);
 
 
         // Stoping the Init process

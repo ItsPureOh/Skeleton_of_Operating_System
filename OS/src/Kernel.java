@@ -1,9 +1,8 @@
-public class Kernel extends Process  {
-    private Scheduler scheduler = new Scheduler();
+public class Kernel implements Device  {
+    private Scheduler scheduler = new Scheduler(this);
+    private VirtualFileSystem vfs = new VirtualFileSystem();
     public Kernel() {
     }
-
-    @Override
     public void main() {
             while (true) { // kernel runs forever
                 // Dispatch based on the current system call from a user process
@@ -21,11 +20,13 @@ public class Kernel extends Process  {
                     case Exit -> Exit();
 
                     // Devices
+                    /*
                     case Open ->
                     case Close ->
                     case Read ->
                     case Seek ->
                     case Write ->
+                     */
                     /*
                     // Messages
                     case GetPIDByName ->
@@ -46,7 +47,7 @@ public class Kernel extends Process  {
                     System.out.println("Kernel is not running");
                 }
                 // Call stop() on myself(kernel), so that there is only one process is running
-                this.stop();
+                getCurrentRunning().start();
             }
     }
 
@@ -112,7 +113,7 @@ public class Kernel extends Process  {
     }
 
     private int Open(String s) {
-        return 0; // change this
+        return 0;
     }
 
     private void Close(int id) {
@@ -153,5 +154,54 @@ public class Kernel extends Process  {
 
     private void FreeAllMemory(PCB currentlyRunning) {
     }
+
+    public void cleanUpDevice(PCB process){
+        for (int i = 0; i < process.vfsID.length; i++){
+            vfs.close(process.vfsID[i]);
+            process.vfsID[i] = -1;
+        }
+    }
+
+    @Override
+    public int open(String s) {
+        PCB currentProcess = getCurrentRunning();
+        for (int i = 0; i < currentProcess.vfsID.length; i++) {
+            if (currentProcess.vfsID[i] == -1){
+                //Then call vfs.open. If the result is -1, fail.
+                int temp = vfs.open(s);
+                if (temp == -1){
+                    return -1;
+                }
+                // Otherwise, put the id from vfs into the PCB’s array and return that array index.
+                else{
+                    currentProcess.vfsID[i] = temp;
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public void close(int id) {
+        vfs.close(getCurrentRunning().vfsID[id]);
+        getCurrentRunning().vfsID[id] = -1;
+    }
+
+    @Override
+    public byte[] read(int id, int size) {
+        return vfs.read(getCurrentRunning().vfsID[id], size);
+    }
+
+    @Override
+    public void seek(int id, int to) {
+        vfs.seek(getCurrentRunning().vfsID[id], to);
+    }
+
+    @Override
+    public int write(int id, byte[] data) {
+        return vfs.write(getCurrentRunning().vfsID[id], data);
+    }
+
 
 }

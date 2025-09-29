@@ -15,7 +15,7 @@ public class PCB { // Process Control Block
     private long wakeupTime;    // time (in milliseconds) when this process should wake up from sleep and return to the ready queue.
     public int timeoutFrequency = 0;
     public boolean timeout = false;
-    private int [] vfsID = new int [10];
+    public int [] vfsID = new int [10];
 
     // Constructor assigns PID and stores priority/process reference
     PCB(UserlandProcess up, OS.PriorityType priority) {
@@ -25,6 +25,10 @@ public class PCB { // Process Control Block
         nextPid++;
         this.process = up;
         this.priority = priority;
+
+        for (int i = 0; i < vfsID.length; i++) {
+            vfsID[i] = -1;
+        }
     }
 
     public String getName() {
