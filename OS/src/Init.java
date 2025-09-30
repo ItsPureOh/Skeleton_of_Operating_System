@@ -23,8 +23,8 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
          */
 
-        OS.CreateProcess(new DeviceTest(), OS.PriorityType.interactive);
-
+        OS.CreateProcess(new TestDeviceFile(), OS.PriorityType.realtime);
+        //OS.CreateProcess(new TestDeviceRandom(), OS.PriorityType.realtime);
         // Stoping the Init process
         OS.Exit();  // unschedule Init, scheduler picks the next process
     }
