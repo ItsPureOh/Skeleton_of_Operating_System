@@ -6,7 +6,7 @@ public class FakeFileSystem implements Device {
     RandomAccessFile files[] = new RandomAccessFile[10];
 
     @Override
-    public int open(String s) {
+    public int Open(String s) {
         if (s == null || s.isEmpty()) {
             throw new IllegalArgumentException("File name cannot be empty");
         }
@@ -24,7 +24,7 @@ public class FakeFileSystem implements Device {
     }
 
     @Override
-    public void close(int id) {
+    public void Close(int id) {
         try {
             files[id].close();
             files[id] = null;
@@ -34,7 +34,7 @@ public class FakeFileSystem implements Device {
     }
 
     @Override
-    public byte[] read(int id, int size) {
+    public byte[] Read(int id, int size) {
         byte [] result = new byte[size];
         //precondition check
         if (files[id] == null) {
@@ -50,7 +50,7 @@ public class FakeFileSystem implements Device {
     }
 
     @Override
-    public void seek(int id, int to) {
+    public void Seek(int id, int to) {
         //precondition check
         if (files[id] == null) {
             throw new IllegalArgumentException("File not opened");
@@ -64,7 +64,7 @@ public class FakeFileSystem implements Device {
     }
 
     @Override
-    public int write(int id, byte[] data) {
+    public int Write(int id, byte[] data) {
         //precondition check
         if (files[id] == null) {
             throw new IllegalArgumentException("File not opened");

@@ -1,4 +1,4 @@
-public class Kernel implements Device  {
+public class Kernel extends Process implements Device  {
     private Scheduler scheduler = new Scheduler(this);
     private VirtualFileSystem vfs = new VirtualFileSystem();
     public Kernel() {
@@ -13,20 +13,24 @@ public class Kernel implements Device  {
                                     (OS.PriorityType) OS.parameters.get(1));
                     // context switch request
                     case SwitchProcess -> SwitchProcess();
-
                     // Priority scheduler calls
                     case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> Exit();
 
                     // Devices
-                    /*
-                    case Open ->
-                    case Close ->
-                    case Read ->
-                    case Seek ->
-                    case Write ->
-                     */
+                    case Open -> OS.retVal = Open((String)OS.parameters.get(0));
+                    case Close -> {
+                        Close((int)OS.parameters.get(0));
+                        OS.retVal = 0;
+                    }
+                    case Read -> OS.retVal = Read((int)OS.parameters.get(0), (int)OS.parameters.get(1));
+                    case Seek -> {
+                        Seek((int)OS.parameters.get(0), (int)OS.parameters.get(1));
+                        OS.retVal = 0;
+                    }
+                    case Write -> OS.retVal = Write((int)OS.parameters.get(0), (byte[]) OS.parameters.get(1));
+
                     /*
                     // Messages
                     case GetPIDByName ->
@@ -47,7 +51,7 @@ public class Kernel implements Device  {
                     System.out.println("Kernel is not running");
                 }
                 // Call stop() on myself(kernel), so that there is only one process is running
-                getCurrentRunning().start();
+                this.stop();
             }
     }
 
@@ -68,8 +72,8 @@ public class Kernel implements Device  {
      * @return int the PID of the created process
      */
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
-        scheduler.CreateProcess(up, priority);
-        return scheduler.currentRunning.pid;
+        return scheduler.CreateProcess(up, priority);
+        //return scheduler.currentRunning.pid;
     }
 
     /**
@@ -112,6 +116,7 @@ public class Kernel implements Device  {
         return scheduler.currentRunning.pid;
     }
 
+    /*
     private int Open(String s) {
         return 0;
     }
@@ -129,6 +134,8 @@ public class Kernel implements Device  {
     private int Write(int id, byte[] data) {
         return 0; // change this
     }
+
+     */
 
     private void SendMessage(/*KernelMessage km*/) {
     }
@@ -157,18 +164,18 @@ public class Kernel implements Device  {
 
     public void cleanUpDevice(PCB process){
         for (int i = 0; i < process.vfsID.length; i++){
-            vfs.close(process.vfsID[i]);
+            vfs.Close(process.vfsID[i]);
             process.vfsID[i] = -1;
         }
     }
 
     @Override
-    public int open(String s) {
+    public int Open(String s) {
         PCB currentProcess = getCurrentRunning();
         for (int i = 0; i < currentProcess.vfsID.length; i++) {
             if (currentProcess.vfsID[i] == -1){
                 //Then call vfs.open. If the result is -1, fail.
-                int temp = vfs.open(s);
+                int temp = vfs.Open(s);
                 if (temp == -1){
                     return -1;
                 }
@@ -183,24 +190,24 @@ public class Kernel implements Device  {
     }
 
     @Override
-    public void close(int id) {
-        vfs.close(getCurrentRunning().vfsID[id]);
+    public void Close(int id) {
+        vfs.Close(getCurrentRunning().vfsID[id]);
         getCurrentRunning().vfsID[id] = -1;
     }
 
     @Override
-    public byte[] read(int id, int size) {
-        return vfs.read(getCurrentRunning().vfsID[id], size);
+    public byte[] Read(int id, int size) {
+        return vfs.Read(getCurrentRunning().vfsID[id], size);
     }
 
     @Override
-    public void seek(int id, int to) {
-        vfs.seek(getCurrentRunning().vfsID[id], to);
+    public void Seek(int id, int to) {
+        vfs.Seek(getCurrentRunning().vfsID[id], to);
     }
 
     @Override
-    public int write(int id, byte[] data) {
-        return vfs.write(getCurrentRunning().vfsID[id], data);
+    public int Write(int id, byte[] data) {
+        return vfs.Write(getCurrentRunning().vfsID[id], data);
     }
 
 

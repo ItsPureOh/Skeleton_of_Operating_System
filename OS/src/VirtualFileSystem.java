@@ -6,7 +6,7 @@ public class VirtualFileSystem implements Device{
     private FakeFileSystem fileFake = new FakeFileSystem();
 
     @Override
-    public int open(String s) {
+    public int Open(String s) {
         String [] result = s.split("\\s+", 2);
 
         for(int i = 0; i < MaximumFiles; i++){
@@ -14,10 +14,10 @@ public class VirtualFileSystem implements Device{
             if (devices[i] == null){
                 if (result[0].equals("random")) {
                     if (result.length == 2){
-                        deviceId[i] = fileRandom.open(result[1]);
+                        deviceId[i] = fileRandom.Open(result[1]);
                     }
                     else{
-                        deviceId[i] = fileRandom.open(null);
+                        deviceId[i] = fileRandom.Open(null);
                     }
                     devices[i] = fileRandom;
                     return i;
@@ -27,7 +27,7 @@ public class VirtualFileSystem implements Device{
                     if (result.length < 2){
                         throw new IllegalArgumentException("Need File's Name Please!");
                     }
-                    deviceId[i] = fileFake.open(result[1]);
+                    deviceId[i] = fileFake.Open(result[1]);
                     devices[i] = fileFake;
                     return i;
                 }
@@ -41,26 +41,26 @@ public class VirtualFileSystem implements Device{
     }
 
     @Override
-    public void close(int id) {
+    public void Close(int id) {
         if (devices[id] != null){
-            devices[id].close(deviceId[id]);
+            devices[id].Close(deviceId[id]);
             devices[id] = null;
             deviceId[id] = -1;
         }
     }
 
     @Override
-    public byte[] read(int id, int size) {
-        return devices[id].read(deviceId[id], size);
+    public byte[] Read(int id, int size) {
+        return devices[id].Read(deviceId[id], size);
     }
 
     @Override
-    public void seek(int id, int to) {
-        devices[id].seek(deviceId[id], to);
+    public void Seek(int id, int to) {
+        devices[id].Seek(deviceId[id], to);
     }
 
     @Override
-    public int write(int id, byte[] data) {
-        return devices[id].write(deviceId[id], data);
+    public int Write(int id, byte[] data) {
+        return devices[id].Write(deviceId[id], data);
     }
 }

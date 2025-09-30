@@ -1,34 +1,28 @@
 public class DeviceTest extends UserlandProcess {
-    private final String name;
-
-    public DeviceTest(String name) {
-        this.name = name;
-    }
-
     @Override
     public void main() {
-        System.out.println(name + " starting (pid=" + OS.GetPID() + ")");
+        int fd = OS.Open("file testfile");
+        if (fd == -1) {
+            System.out.println("Open failed");
+            OS.Exit();
+            return;
+        }
 
-        // Open a file
-        int fd = OS.Open("shared.txt");
-        System.out.println(name + " opened shared.txt with fd=" + fd);
+        byte[] message = "hello".getBytes();
+        OS.Write(fd, message);
 
-        // Write something
-        OS.Write(fd, (name + " says hello!\n").getBytes());
-        System.out.println(name + " wrote message.");
+        OS.Seek(fd, 0);
+        byte[] data = OS.Read(fd, message.length);
 
-        // Sleep a bit to let scheduler switch
-        OS.Sleep(200);
-        cooperate();
+        System.out.println("Read back: " + new String(data));
 
-        // Write again
-        OS.Write(fd, (name + " still alive!\n").getBytes());
-        System.out.println(name + " wrote second message.");
-
-        // Close file
         OS.Close(fd);
-        System.out.println(name + " closed shared.txt.");
 
-        System.out.println(name + " finished (pid=" + OS.GetPID() + ")");
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        OS.Exit();
     }
 }

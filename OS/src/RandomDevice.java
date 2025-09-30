@@ -5,7 +5,7 @@ public class RandomDevice implements Device {
     private Random[] devices = new Random[10];
 
     @Override
-    public int open(String s) {
+    public int Open(String s) {
         // find empty spot
         for (int i = 0; i < devices.length; i++) {
             // supplied string for Open is null or empty
@@ -22,12 +22,12 @@ public class RandomDevice implements Device {
     }
 
     @Override
-    public void close(int id) {
+    public void Close(int id) {
         devices[id] = null;
     }
 
     @Override
-    public byte[] read(int id, int size) {
+    public byte[] Read(int id, int size) {
         //precondition check
         if (devices[id] == null){
             throw new IllegalArgumentException("Device not open at id: " + id);
@@ -40,7 +40,7 @@ public class RandomDevice implements Device {
     }
 
     @Override
-    public void seek(int id, int to) {
+    public void Seek(int id, int to) {
         //precondition check
         if (devices[id] == null){
             throw new IllegalArgumentException("Device not open at id: " + id);
@@ -53,7 +53,7 @@ public class RandomDevice implements Device {
     }
 
     @Override
-    public int write(int id, byte[] data) {
+    public int Write(int id, byte[] data) {
         // Write will return 0 length and do nothing
         return 0;
     }
