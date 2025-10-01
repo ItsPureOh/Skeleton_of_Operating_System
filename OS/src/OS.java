@@ -14,6 +14,7 @@ public class OS {
     private static void startTheKernel() {
         // start the kernel
         ki.start();
+        System.out.println("Kernel started");
 
         //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
         PCB cur = ki.getCurrentRunning();

@@ -8,13 +8,18 @@ public class Kernel extends Process implements Device  {
                 // Dispatch based on the current system call from a user process
                 switch (OS.currentCall) {
                     // extract parameters and create a new process
-                    case CreateProcess ->
+                    case CreateProcess ->{
                             OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0),
                                     (OS.PriorityType) OS.parameters.get(1));
+                    }
                     // context switch request
-                    case SwitchProcess -> SwitchProcess();
+                    case SwitchProcess -> {
+                        SwitchProcess();
+                    }
                     // Priority scheduler calls
-                    case Sleep -> Sleep((int) OS.parameters.get(0));
+                    case Sleep -> {
+                        Sleep((int) OS.parameters.get(0));
+                    }
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> Exit();
 
@@ -48,10 +53,11 @@ public class Kernel extends Process implements Device  {
                     scheduler.currentRunning.start();
                 }
                 else{
-                    System.out.println("Kernel is not running");
+
                 }
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
+                System.out.println("Kernel stopped");
             }
     }
 
