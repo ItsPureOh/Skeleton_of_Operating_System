@@ -197,24 +197,34 @@ public class Kernel extends Process implements Device  {
 
     @Override
     public void Close(int id) {
+        if (id < 0){
+            throw new IllegalArgumentException("Close index is negative");
+        }
         vfs.Close(getCurrentRunning().vfsID[id]);
         getCurrentRunning().vfsID[id] = -1;
     }
 
     @Override
     public byte[] Read(int id, int size) {
+        if (id < 0){
+            throw new IllegalArgumentException("Read index is negative");
+        }
         return vfs.Read(getCurrentRunning().vfsID[id], size);
     }
 
     @Override
     public void Seek(int id, int to) {
+        if (id < 0){
+            throw new IllegalArgumentException("Seek index is negative");
+        }
         vfs.Seek(getCurrentRunning().vfsID[id], to);
     }
 
     @Override
     public int Write(int id, byte[] data) {
+        if (id < 0){
+            throw new IllegalArgumentException("Write index is negative");
+        }
         return vfs.Write(getCurrentRunning().vfsID[id], data);
     }
-
-
 }

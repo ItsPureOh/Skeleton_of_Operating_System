@@ -11,7 +11,7 @@ public class TestDeviceFile extends UserlandProcess {
         for (int i = 0; i < 10; i++) {
             String filename = "file " + Integer.toString(i) + ".txt";
             fds[i] = OS.Open(filename);
-            if (fds[i] < 0) {
+            if (fds[i] == -1) {
                 System.out.println("Open failed " + filename);
             } else {
                 System.out.println("Open success " + filename);
@@ -27,8 +27,11 @@ public class TestDeviceFile extends UserlandProcess {
         // Test for Write
         for (int i = 0; i < 10; i++) {
             String content = ("Hello Device: " + Integer.toString(i));
-            OS.Write(fds[i], content.getBytes());
+            if (OS.Write(fds[i], content.getBytes()) < 0){
+                System.out.println("Write failed " + content);
+            }
             size = content.getBytes().length;
+            System.out.println("Write success " + Integer.toString(i));
         }
 
         try {
@@ -54,7 +57,7 @@ public class TestDeviceFile extends UserlandProcess {
         // Test for Close()
         for (int i = 0; i < 10; i++) {
             OS.Close(fds[i]);
-            System.out.println("Close File " + Integer.toString(i) + ".txt" + "Successfully");
+            System.out.println("Close File " + Integer.toString(i) + ".txt" + " Successfully");
         }
 
         try {
