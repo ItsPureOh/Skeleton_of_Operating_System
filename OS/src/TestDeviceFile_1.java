@@ -63,7 +63,5 @@ public class TestDeviceFile_1 extends UserlandProcess {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        OS.Exit();
     }
 }
