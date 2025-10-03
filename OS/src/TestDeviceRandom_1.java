@@ -8,11 +8,14 @@ public class TestDeviceRandom_1 extends UserlandProcess {
         for (int i = 0; i < 10; i++) {
             String devname = "random " + (100 + i);  // seeds: 100, 101
             fds[i] = OS.Open(devname);
+
             if (fds[i] == -1) {
                 System.out.println("Open failed " + devname);
             } else {
                 System.out.println("Open success " + devname);
             }
+
+
         }
         // Read Random Devices (cannot Write to them normally)
         for (int i = 0; i < 10; i++) {
@@ -36,12 +39,6 @@ public class TestDeviceRandom_1 extends UserlandProcess {
         for (int i = 0; i < 10; i++) {
             OS.Close(fds[i]);
             System.out.println("Close success " + fds[i]);
-        }
-
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 }

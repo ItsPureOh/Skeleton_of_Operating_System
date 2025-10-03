@@ -57,7 +57,7 @@ public class Kernel extends Process implements Device  {
                 }
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
-                System.out.println("Kernel stopped");
+                //System.out.println("Kernel stopped");
             }
     }
 

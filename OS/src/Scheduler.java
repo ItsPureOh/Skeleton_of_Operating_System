@@ -105,7 +105,7 @@ public class Scheduler {
         } while (next == null || next.isDone());
 
         System.out.println("Switching from " +
-                (cur == null ? "none" : cur.pid + "(" +
+                (cur == null ? "kernel" : cur.pid + "(" +
                         (cur.getPriority() == OS.PriorityType.realtime ? "realtime" :
                                 cur.getPriority() == OS.PriorityType.interactive ? "interactive" :
                                         "background") + ")") +
@@ -114,6 +114,8 @@ public class Scheduler {
                         (next.getPriority() == OS.PriorityType.realtime ? "realtime" :
                                 next.getPriority() == OS.PriorityType.interactive ? "interactive" :
                                         "background") + ")"));
+
+        PrintQueues();
 
         // assign the next process as running
         currentRunning = next;
@@ -285,5 +287,34 @@ public class Scheduler {
 
     public PCB getCurrentRunningProcess(){
         return currentRunning;
+    }
+
+    /**
+     * Prints the current contents of all process queues for debugging.
+     */
+    private void PrintQueues() {
+        System.out.print("Realtime Queue: ");
+        for (PCB p : realtimeProcess) {
+            System.out.print(p.pid + " ");
+        }
+        System.out.println();
+
+        System.out.print("Interactive Queue: ");
+        for (PCB p : interactiveProcess) {
+            System.out.print(p.pid + " ");
+        }
+        System.out.println();
+
+        System.out.print("Background Queue: ");
+        for (PCB p : backgroundProcess) {
+            System.out.print(p.pid + " ");
+        }
+        System.out.println();
+
+        System.out.print("Sleeping Queue: ");
+        for (PCB p : sleepingQueue) {
+            System.out.print(p.pid + " ");
+        }
+        System.out.println("\n");
     }
 }
