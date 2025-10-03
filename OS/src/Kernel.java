@@ -53,7 +53,7 @@ public class Kernel extends Process implements Device  {
                     scheduler.currentRunning.start();
                 }
                 else{
-
+                    scheduler.SwitchProcess();
                 }
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
@@ -78,8 +78,8 @@ public class Kernel extends Process implements Device  {
      * @return int the PID of the created process
      */
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
-        return scheduler.CreateProcess(up, priority);
-        //return scheduler.currentRunning.pid;
+        scheduler.CreateProcess(up, priority);
+        return scheduler.currentRunning.pid;
     }
 
     /**
@@ -106,11 +106,19 @@ public class Kernel extends Process implements Device  {
      * @return void
      */
     private void Exit() {
+        while(scheduler.currentRunning == null) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         // unscheduled the current process so that it never gets run again
         if (scheduler.currentRunning != null) {
             System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
             scheduler.currentRunning = null;
         }
+
         //schedule should choose something else to run
         OS.switchProcess();
     }

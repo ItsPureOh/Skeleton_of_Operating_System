@@ -21,8 +21,7 @@ public class RandomDevice implements Device {
                 return i;
             }
         }
-
-        return 0;
+        return -1;
     }
 
     @Override

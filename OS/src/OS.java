@@ -58,7 +58,6 @@ public class OS {
         parameters.clear();
         parameters.add(up);
         parameters.add(priority);
-
         currentCall = CallType.CreateProcess;
         startTheKernel();
         return (int) retVal;
@@ -66,7 +65,6 @@ public class OS {
 
     public static int GetPID() {
         parameters.clear();
-
         currentCall = CallType.GetPID;
         startTheKernel();
         return (int) retVal;
@@ -74,7 +72,6 @@ public class OS {
 
     public static void Exit() {
         parameters.clear();
-
         currentCall = CallType.Exit;
         startTheKernel();
     }
@@ -82,7 +79,6 @@ public class OS {
     public static void Sleep(int mills) {
         parameters.clear();
         parameters.add(mills);
-
         currentCall = CallType.Sleep;
         startTheKernel();
     }
@@ -91,7 +87,6 @@ public class OS {
     public static int Open(String s) {
         parameters.clear();
         parameters.add(s);
-
         currentCall = CallType.Open;
         startTheKernel();
         return (int) retVal;
@@ -100,7 +95,6 @@ public class OS {
     public static void Close(int id) {
         parameters.clear();
         parameters.add(id);
-
         currentCall = CallType.Close;
         startTheKernel();
     }
@@ -109,7 +103,6 @@ public class OS {
         parameters.clear();
         parameters.add(id);
         parameters.add(size);
-
         currentCall = CallType.Read;
         startTheKernel();
         return (byte[]) retVal;
@@ -119,7 +112,6 @@ public class OS {
         parameters.clear();
         parameters.add(id);
         parameters.add(to);
-
         currentCall = CallType.Seek;
         startTheKernel();
     }
