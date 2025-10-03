@@ -59,7 +59,7 @@ public class TestDeviceFile_1 extends UserlandProcess {
         }
 
         try {
-            Thread.sleep(200);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -25,7 +25,7 @@ public class OS {
         /*
         If there is no current process running, create a loop in OS that calls Thread.sleep(10)
             until the return value is set by the kernel.
-         */
+        */
         else{
             while (retVal == null) {
                 try {
@@ -34,6 +34,12 @@ public class OS {
                     throw new RuntimeException(e);
                 }
             }
+        }
+
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

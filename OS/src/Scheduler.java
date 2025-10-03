@@ -49,6 +49,7 @@ public class Scheduler {
     public int CreateProcess(UserlandProcess up, OS.PriorityType p){
         // Wrap the user process in a PCB (gives it a PID, etc.)
         PCB pcb = new PCB(up, p);
+
         // enqueues it in the appropriate priority queue
         if (p == OS.PriorityType.realtime){
             realtimeProcess.addLast(pcb);

@@ -5,7 +5,7 @@ public class IdleProcess extends UserlandProcess {
             try {
                 System.out.println("idle");
                 cooperate();
-                Thread.sleep(50);
+                Thread.sleep(300);
             } catch (Exception e) { }
         }
     }

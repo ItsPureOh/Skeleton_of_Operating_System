@@ -14,9 +14,6 @@ public class TestDeviceRandom_1 extends UserlandProcess {
                 System.out.println("Open success " + devname);
             }
         }
-
-
-
         // Read Random Devices (cannot Write to them normally)
         for (int i = 0; i < 10; i++) {
             byte[] rand = OS.Read(fds[i], 10); // read 8 random bytes
@@ -26,9 +23,6 @@ public class TestDeviceRandom_1 extends UserlandProcess {
                 System.out.println("Random read fd=" + fds[i] + ": " + Arrays.toString(rand));
             }
         }
-
-
-
         // Seek back to start and re-read
         for (int i = 0; i < 10; i++) {
             OS.Seek(fds[i], 1);
@@ -39,20 +33,16 @@ public class TestDeviceRandom_1 extends UserlandProcess {
                 System.out.println("After Seek(1), re-read fd=" + fds[i] + ": " + Arrays.toString(rand2));
             }
         }
-
-
-
         for (int i = 0; i < 10; i++) {
             OS.Close(fds[i]);
             System.out.println("Close success " + fds[i]);
         }
 
         try {
-            Thread.sleep(100);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
 
         OS.Exit();
     }
