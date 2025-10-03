@@ -1,3 +1,4 @@
+import java.sql.SQLOutput;
 import java.time.Clock;
 import java.util.LinkedList;
 import java.util.Random;
@@ -19,6 +20,9 @@ public class Scheduler {
     final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
     //kernel ref.
     private Kernel ki;
+
+    //debug int
+    int debug = 0;
 
 
     public Scheduler(Kernel k) {
@@ -99,7 +103,14 @@ public class Scheduler {
         // Select the next process to run (probabilistic choice by priority)
         do {
             next = ProbabilisticProcessPicking();
+            debug ++;
+            if (debug > 30) {
+                System.out.println("Cant Switching Process");
+                OS.Exit();
+            }
         } while (next == null || next.isDone());
+
+        debug = 0;
 
         System.out.println("Switching from " +
                 (cur == null ? "none" : cur.pid + "(" +

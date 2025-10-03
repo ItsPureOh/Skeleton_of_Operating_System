@@ -11,13 +11,17 @@ public class RandomDevice implements Device {
             // supplied string for Open is null or empty
             if (s == null || s.isEmpty()){
                 devices[i] = new Random();
+                return i;
             }
             // Converting string to the seed
             else{
                 int seed = Integer.parseInt(s);
                 devices[i] = new Random(seed);
+                System.out.println("Random device opened with seed " + seed);
+                return i;
             }
         }
+
         return 0;
     }
 
@@ -49,7 +53,6 @@ public class RandomDevice implements Device {
         // just generate and discard 'to' random bytes
         byte[] dummy = new byte[to];
         devices[id].nextBytes(dummy);
-        System.out.println(Arrays.toString(dummy));
     }
 
     @Override
