@@ -24,16 +24,13 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
          */
+
+
+        OS.CreateProcess(new TestDevice_MultipleProcess(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestDeviceFile_1(), OS.PriorityType.realtime);
-
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
         OS.CreateProcess(new TestDeviceRandom_1(), OS.PriorityType.realtime);
 
+        // preventing Init Exit so fast
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
