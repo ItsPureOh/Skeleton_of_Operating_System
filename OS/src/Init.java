@@ -25,7 +25,7 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
          */
 
-
+        //Tests For Device Assignment
         OS.CreateProcess(new TestDevice_MultipleProcess(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestDeviceFile_1(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestDeviceRandom_1(), OS.PriorityType.realtime);

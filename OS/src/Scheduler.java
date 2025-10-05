@@ -189,6 +189,7 @@ public class Scheduler {
             return;
         }
         if (currentRunningProcess.isDone()){
+            // clean up the space if process is finished
             ki.cleanUpDevice(currentRunningProcess);
             return;
         }

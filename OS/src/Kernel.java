@@ -1,8 +1,25 @@
+/**
+ * Kernel Class
+ * -------------
+ * This class represents the core of a simulated operating system kernel.
+ * It extends the Process class and implements the Device interface, handling both
+ * process scheduling and device management through a Virtual File System (VFS).
+ *
+ * The Kernel manages system calls from user processes, dispatching them
+ * to the appropriate handlers (e.g., CreateProcess, Sleep, Read, Write, etc.).
+ * It uses the Scheduler to manage CPU time among processes and interacts
+ * with the VirtualFileSystem for I/O operations.
+ */
 public class Kernel extends Process implements Device  {
     private Scheduler scheduler = new Scheduler(this);
     private VirtualFileSystem vfs = new VirtualFileSystem();
     public Kernel() {
     }
+    /**
+     * The main kernel loop.
+     * Continuously processes system calls and performs scheduling.
+     * Runs indefinitely as long as the OS is active.
+     */
     public void main() {
             while (true) { // kernel runs forever
                 // Dispatch based on the current system call from a user process
@@ -176,6 +193,10 @@ public class Kernel extends Process implements Device  {
     private void FreeAllMemory(PCB currentlyRunning) {
     }
 
+    /**
+     * Cleans up all open device handles for a given process.
+     * @param process the process to clean up
+     */
     public void cleanUpDevice(PCB process){
         for (int i = 0; i < process.vfsID.length; i++){
             vfs.Close(process.vfsID[i]);
@@ -183,6 +204,11 @@ public class Kernel extends Process implements Device  {
         }
     }
 
+    /**
+     * Opens a file or device via the virtual file system and associates it with the process.
+     * @param s file or device name
+     * @return index in the process’s VFS ID array, or -1 on failure
+     */
     @Override
     public int Open(String s) {
         PCB currentProcess = getCurrentRunning();
@@ -191,18 +217,22 @@ public class Kernel extends Process implements Device  {
                 //Then call vfs.open. If the result is -1, fail.
                 int temp = vfs.Open(s);
                 if (temp == -1){
-                    return -1;
+                    return -1;  // open failed
                 }
                 // Otherwise, put the id from vfs into the PCB’s array and return that array index.
                 else{
                     currentProcess.vfsID[i] = temp;
-                    return i;
+                    return i;       // return index in process table
                 }
             }
         }
-        return -1;
+        return -1;   // no free slots
     }
 
+    /**
+     * Closes a file or device handle for the current process.
+     * @param id index in the process’s VFS ID array
+     */
     @Override
     public void Close(int id) {
         if (id < 0){
@@ -212,6 +242,12 @@ public class Kernel extends Process implements Device  {
         getCurrentRunning().vfsID[id] = -1;
     }
 
+    /**
+     * Reads bytes from a file or device.
+     * @param id VFS ID index
+     * @param size number of bytes to read
+     * @return byte array of data read
+     */
     @Override
     public byte[] Read(int id, int size) {
         if (id < 0){
@@ -220,6 +256,11 @@ public class Kernel extends Process implements Device  {
         return vfs.Read(getCurrentRunning().vfsID[id], size);
     }
 
+    /**
+     * Moves the read/write pointer within a file or device.
+     * @param id VFS ID index
+     * @param to new position in bytes
+     */
     @Override
     public void Seek(int id, int to) {
         if (id < 0){
@@ -228,6 +269,12 @@ public class Kernel extends Process implements Device  {
         vfs.Seek(getCurrentRunning().vfsID[id], to);
     }
 
+    /**
+     * Writes data to a file or device.
+     * @param id VFS ID index
+     * @param data byte array of data to write
+     * @return number of bytes written
+     */
     @Override
     public int Write(int id, byte[] data) {
         if (id < 0){

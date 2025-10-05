@@ -15,7 +15,7 @@ public class PCB { // Process Control Block
     private long wakeupTime;    // time (in milliseconds) when this process should wake up from sleep and return to the ready queue.
     public int timeoutFrequency = 0;
     public boolean timeout = false;
-    public int [] vfsID = new int [10];
+    public int [] vfsID = new int [10];         // Array of Virtual File System (VFS) handles associated with this process.
 
     // Constructor assigns PID and stores priority/process reference
     PCB(UserlandProcess up, OS.PriorityType priority) {
@@ -26,6 +26,7 @@ public class PCB { // Process Control Block
         this.process = up;
         this.priority = priority;
 
+        // Initialize all VFS handles to -1 (unused)
         for (int i = 0; i < vfsID.length; i++) {
             vfsID[i] = -1;
         }
