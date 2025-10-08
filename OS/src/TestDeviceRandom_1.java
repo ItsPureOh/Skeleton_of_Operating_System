@@ -63,5 +63,7 @@ public class TestDeviceRandom_1 extends UserlandProcess {
             OS.Close(fds[i]);
             System.out.println("Close success " + fds[i]);
         }
+
+        OS.Exit();
     }
 }

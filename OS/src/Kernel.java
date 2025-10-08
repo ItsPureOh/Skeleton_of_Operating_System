@@ -133,6 +133,7 @@ public class Kernel extends Process implements Device  {
         // unscheduled the current process so that it never gets run again
         if (scheduler.currentRunning != null) {
             System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
+            cleanUpDevice(scheduler.currentRunning);
             scheduler.currentRunning = null;
         }
 
@@ -199,8 +200,11 @@ public class Kernel extends Process implements Device  {
      */
     public void cleanUpDevice(PCB process){
         for (int i = 0; i < process.vfsID.length; i++){
-            vfs.Close(process.vfsID[i]);
-            process.vfsID[i] = -1;
+            // if slot is not empty
+            if(process.vfsID[i] != -1){
+                vfs.Close(process.vfsID[i]);
+                process.vfsID[i] = -1;
+            }
         }
     }
 

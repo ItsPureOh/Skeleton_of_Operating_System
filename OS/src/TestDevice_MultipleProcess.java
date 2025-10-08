@@ -68,6 +68,8 @@ public class TestDevice_MultipleProcess extends UserlandProcess{
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        OS.Exit();
     }
 
 }
