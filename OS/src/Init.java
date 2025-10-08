@@ -26,9 +26,20 @@ public class Init extends UserlandProcess{
          */
 
         //Tests For Device Assignment
+        /*
+        Multiple Processes access same device, appending new text to the same files open below
+         */
         OS.CreateProcess(new TestDevice_MultipleProcess(), OS.PriorityType.realtime);
+        /*
+        Check all functionality of the device with the name
+         */
         OS.CreateProcess(new TestDeviceFile_1(), OS.PriorityType.realtime);
+        /*
+        Check all functionality of the device with the random seeds
+         */
         OS.CreateProcess(new TestDeviceRandom_1(), OS.PriorityType.realtime);
+
+
 
         // preventing Init Exit so fast
         try {
@@ -36,7 +47,6 @@ public class Init extends UserlandProcess{
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
         // Stoping the Init process
         OS.Exit();  // unschedule Init, scheduler picks the next process
     }
