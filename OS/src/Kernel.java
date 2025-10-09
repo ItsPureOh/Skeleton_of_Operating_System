@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 /**
  * Kernel Class
  * -------------
@@ -131,11 +133,13 @@ public class Kernel extends Process implements Device  {
             }
         }
         // unscheduled the current process so that it never gets run again
-        if (scheduler.currentRunning != null) {
-            System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
-            cleanUpDevice(scheduler.currentRunning);
-            scheduler.currentRunning = null;
-        }
+        System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
+        // clean Up the device
+        cleanUpDevice(scheduler.currentRunning);
+        // remove it from the hashmap in scheduler
+        scheduler.removeCurrentProcessFromTheMap();
+        // remove the process from the queue
+        scheduler.currentRunning = null;
 
         //schedule should choose something else to run
         OS.switchProcess();
@@ -166,13 +170,20 @@ public class Kernel extends Process implements Device  {
     private int Write(int id, byte[] data) {
         return 0; // change this
     }
-
      */
 
-    private void SendMessage(/*KernelMessage km*/) {
+    private void SendMessage(KernelMessage km) {
+        KernelMessage copyMessage = new KernelMessage(km);
+        copyMessage.senderPid = scheduler.currentRunning.pid;
+        PCB targetPCB = scheduler.processMap.get(copyMessage.targetPid);
+        // pre-check target PCB exist
+        if (targetPCB != null) {
+            targetPCB.messageQueue.add(copyMessage.message);
+        }
     }
 
     private KernelMessage WaitForMessage() {
+
         return null;
     }
 

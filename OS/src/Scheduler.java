@@ -1,9 +1,6 @@
 import java.sql.SQLOutput;
 import java.time.Clock;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class Scheduler {
     // Timer simulates the hardware timer chip. It fires regularly to expire quantums.
@@ -20,6 +17,8 @@ public class Scheduler {
     final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
     //kernel ref.
     private Kernel ki;
+    // hashMap that contains process table with PID
+    public HashMap<Integer, PCB> processMap;
 
 
 
@@ -68,6 +67,9 @@ public class Scheduler {
         if (currentRunning == null) {
             SwitchProcess();
         }
+        //store PCB in hashMap
+        processMap.put(pcb.pid, pcb);
+
         //System.out.println("Process: " + pcb.pid + "Created");
         return pcb.pid;
     }
@@ -102,6 +104,10 @@ public class Scheduler {
         // Select the next process to run (probabilistic choice by priority)
         do {
             next = ProbabilisticProcessPicking();
+            // remove the prccess if we find there is a finished Process in the queue
+            if (next.isDone()) {
+                processMap.remove(next.pid);
+            }
         } while (next == null || next.isDone());
 
         System.out.println("Switching from " +
@@ -191,6 +197,8 @@ public class Scheduler {
         if (currentRunningProcess.isDone()){
             // clean up the space if process is finished
             ki.cleanUpDevice(currentRunningProcess);
+            // remove that process from the map
+            processMap.remove(currentRunningProcess.pid);
             return;
         }
 
@@ -290,6 +298,10 @@ public class Scheduler {
         return currentRunning;
     }
 
+    public int getPid(PCB currentRunningProcess){
+        return currentRunningProcess.pid;
+    }
+
     /**
      * Prints the current contents of all process queues for debugging.
      */
@@ -317,5 +329,9 @@ public class Scheduler {
             System.out.print(p.pid + " ");
         }
         System.out.println("\n");
+    }
+
+    public void removeCurrentProcessFromTheMap(){
+        processMap.remove(currentRunning.pid);
     }
 }

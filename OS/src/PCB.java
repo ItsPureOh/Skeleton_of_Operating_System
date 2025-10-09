@@ -1,3 +1,5 @@
+import java.util.LinkedList;
+
 /**
  * PCB (Process Control Block).
  * Holds metadata and control for a single process:
@@ -11,11 +13,13 @@ public class PCB { // Process Control Block
     private static int nextPid = 1;
     public int pid;
     private OS.PriorityType priority;
-    private UserlandProcess process;
+    private final UserlandProcess process;
     private long wakeupTime;    // time (in milliseconds) when this process should wake up from sleep and return to the ready queue.
     public int timeoutFrequency = 0;
     public boolean timeout = false;
     public int [] vfsID = new int [10];         // Array of Virtual File System (VFS) handles associated with this process.
+    public final String nameOfProcess;
+    public LinkedList<byte[]> messageQueue;
 
     // Constructor assigns PID and stores priority/process reference
     PCB(UserlandProcess up, OS.PriorityType priority) {
@@ -25,6 +29,7 @@ public class PCB { // Process Control Block
         nextPid++;
         this.process = up;
         this.priority = priority;
+        this.nameOfProcess = up.getClass().getSimpleName();
 
         // Initialize all VFS handles to -1 (unused)
         for (int i = 0; i < vfsID.length; i++) {
@@ -93,6 +98,4 @@ public class PCB { // Process Control Block
     public long getWakeupTime() {
         return wakeupTime;
     }
-
-
 }
