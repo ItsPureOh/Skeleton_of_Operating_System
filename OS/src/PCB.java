@@ -37,9 +37,7 @@ public class PCB { // Process Control Block
         }
     }
 
-    public String getName() {
-        return null;
-    }
+    public String getName() { return nameOfProcess; }
 
     OS.PriorityType getPriority() {
         return priority;

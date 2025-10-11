@@ -199,11 +199,22 @@ public class Kernel extends Process implements Device  {
         // de-schedule ourselves (similar to what we did for Sleep() ) and add ourselves to a new data structure to hold processes that are waiting.
         scheduler.putCurrentProcessInTheWaitingMap();
 
-        // when process comeback from the
+        // when process comeback from the waiting list
+        if (!getCurrentRunning().messageQueue.isEmpty()) {
+            return getCurrentRunning().messageQueue.remove();
+        }
+        else{
+            throw new RuntimeException("No message queue available");
+        }
     }
 
     private int GetPidByName(String name) {
-        return 0; // change this
+        for (PCB pcb : scheduler.processMap.values()) {
+            if (pcb.getName().equals(name)) {
+                return pcb.pid;
+            }
+        }
+        return -1;
     }
 
     private void GetMapping(int virtualPage) {
