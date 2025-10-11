@@ -15,8 +15,10 @@ public class Scheduler {
     final private LinkedList<PCB> realtimeProcess = new LinkedList<>();
     final private LinkedList<PCB> interactiveProcess = new LinkedList<>();
     final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
+    // waiting message queue list
+    final private HashMap<Integer, PCB> waitingProcess = new HashMap<>();
     //kernel ref.
-    private Kernel ki;
+    private final Kernel ki;
     // hashMap that contains process table with PID
     public HashMap<Integer, PCB> processMap;
 
@@ -149,6 +151,9 @@ public class Scheduler {
         //testing
         System.out.println("process: " + currentRunning.pid + "sleeping now");
 
+        //stop the current Process
+        currentRunning.requestStop();
+
         // Clear currentRunning so the scheduler can select another process
         currentRunning = null;
     }
@@ -189,7 +194,7 @@ public class Scheduler {
      *
      * @param currentRunningProcess the process to requeue
      */
-    private void Requeue(PCB currentRunningProcess){
+    public void Requeue(PCB currentRunningProcess){
 
         if (currentRunningProcess == null){
             return;
@@ -333,5 +338,25 @@ public class Scheduler {
 
     public void removeCurrentProcessFromTheMap(){
         processMap.remove(currentRunning.pid);
+    }
+
+    public void putCurrentProcessInTheWaitingMap(){
+        currentRunning.requestStop();
+        waitingProcess.put(currentRunning.pid, currentRunning);
+
+    }
+
+    public PCB checkWaitingProcess(int pid){
+        if (waitingProcess.containsKey(pid)){
+            return waitingProcess.get(pid);
+        }
+        return null;
+    }
+
+    public PCB removeWaitingProcess(int pid){
+        if (waitingProcess.containsKey(pid)){
+            return waitingProcess.remove(pid);
+        }
+        return null;
     }
 }
