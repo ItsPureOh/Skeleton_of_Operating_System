@@ -71,19 +71,17 @@ public class Kernel extends Process implements Device  {
                 // call start() on the next process to run, make sure kernel is running right now
                 if (!this.isStopped()){ // make sure kernel still running right now
                     // current process should not be changed, since we never call SwitchProcess
-                    if (scheduler.currentRunning != null) {
-                        // start() the current Process, queuing in the semaphore list
-                        scheduler.currentRunning.start();
+                    if (scheduler.currentRunning == null) {
+                        SwitchProcess();
                     }
-                    else{
-                        // this should never run
-                        scheduler.SwitchProcess();
-                        System.out.println("Error: Current Process is missing");
-                    }
-                    // Call stop() on myself(kernel), so that there is only one process is running
-                    this.stop();
+                    scheduler.currentRunning.start();
                 }
+
+                // Call stop() on myself(kernel), so that there is only one process is running
+                this.stop();
+                System.out.println("Kernel stopped");
             }
+
     }
 
     /**

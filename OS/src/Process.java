@@ -5,42 +5,42 @@ import java.util.concurrent.Semaphore;
  * Implements cooperative multitasking via a semaphore gate and a quantum flag.
  */
 public abstract class Process implements Runnable{
-    //members
-    Thread thread = new Thread(this);
-    Semaphore semaphore = new Semaphore(0);
     // set the fixed time for process to run
-    Boolean quantumExpired = false;
-    Boolean finsihed = false;
+    private Boolean quantumExpired = false;
+    private Boolean finsihed = false;
+    private Semaphore semaphore = new Semaphore(0);
 
     public Process() {
+        //members
+        Thread thread = new Thread(this);
         thread.start();
     }
 
     /** Request the process to yield at the next cooperate() check (timer “interrupt”). */
     public void requestStop() {
-        quantumExpired = true;
+        this.quantumExpired = true;
     }
 
     public abstract void main();
 
     /** @return true if this process is currently blocked (not allowed to run). */
     public boolean isStopped() {
-        return semaphore.availablePermits() == 0;
+        return this.semaphore.availablePermits() == 0;
     }
 
     /** @return true if the underlying thread has terminated. */
     public boolean isDone() {
-        return finsihed;
+        return this.finsihed;
     }
 
     /** Allow this process to run (release one permit so the thread can proceed). */
     public void start() {
-        semaphore.release();
+        this.semaphore.release();
     }
 
     /** Block/suspend this process (consume all permits until 0). */
     public void stop() {
-        semaphore.acquireUninterruptibly();
+        this.semaphore.acquireUninterruptibly();
     }
 
     /**
@@ -48,7 +48,7 @@ public abstract class Process implements Runnable{
      * NEVER call run() directly; call start() to schedule the process.
      */
     public void run() { // called by the JVM thread system — NEVER CALL THIS YOURSELF
-        semaphore.acquireUninterruptibly(); // block until process is started
+        semaphore.acquireUninterruptibly(); // block & waiting for permission
         main();                             // execute the userland process main()
         finsihed = true;                    // mark process as done
         OS.switchProcess();                 // ask kernel to pick next process
@@ -60,8 +60,8 @@ public abstract class Process implements Runnable{
      * and ask the OS to switch to another runnable process.
      */
     public void cooperate() {
-        if (quantumExpired) {
-            quantumExpired = false;
+        if (this.quantumExpired) {
+            this.quantumExpired = false;
             OS.switchProcess();
         }
     }
