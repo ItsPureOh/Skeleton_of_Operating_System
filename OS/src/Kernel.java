@@ -55,11 +55,12 @@ public class Kernel extends Process implements Device  {
                     }
                     case Write -> OS.retVal = Write((int)OS.parameters.get(0), (byte[]) OS.parameters.get(1));
 
-                    /*
+
                     // Messages
-                    case GetPIDByName ->
-                    case SendMessage ->
-                    case WaitForMessage ->
+                    case GetPIDByName -> OS.retVal = GetPidByName((String)OS.parameters.get(0));
+                    case SendMessage -> SendMessage((KernelMessage) OS.parameters.get(0));
+                    case WaitForMessage -> OS.retVal = WaitForMessage();
+                    /*
                     // Memory
                     case GetMapping ->
                     case AllocateMemory ->
@@ -68,15 +69,24 @@ public class Kernel extends Process implements Device  {
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
                 // call start() on the next process to run, make sure kernel is running right now
-                if (scheduler.currentRunning != null) {
-                    scheduler.currentRunning.start();
+                if (!this.isStopped()){ // make sure kernel still running right now
+                    // current process should not be changed, since we never call SwitchProcess
+                    if (scheduler.currentRunning != null) {
+                        // start() the current Process, queuing in the semaphore list
+                        scheduler.currentRunning.start();
+                    }
+                    else{
+                        // this should never run
+                        scheduler.SwitchProcess();
+                        System.out.println("Error: Current Process is missing");
+                    }
                 }
                 else{
-                    scheduler.SwitchProcess();
+                    throw new RuntimeException("Error: Kernel is stopped unexpectedly");
                 }
+
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
-                //System.out.println("Kernel stopped");
             }
     }
 
@@ -138,6 +148,8 @@ public class Kernel extends Process implements Device  {
         cleanUpDevice(scheduler.currentRunning);
         // remove it from the hashmap in scheduler
         scheduler.removeCurrentProcessFromTheMap();
+        // remove the queue message from the process list
+        scheduler.clearMessageInQueue();
         // remove the process from the queue
         scheduler.currentRunning = null;
 
@@ -174,6 +186,7 @@ public class Kernel extends Process implements Device  {
 
     private void SendMessage(KernelMessage km) {
         KernelMessage copyMessage = new KernelMessage(km);
+        // assigning sender pid
         copyMessage.senderPid = scheduler.currentRunning.pid;
         PCB targetPCB = scheduler.processMap.get(copyMessage.targetPid);
         // pre-check target PCB exist

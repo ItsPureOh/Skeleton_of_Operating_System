@@ -151,9 +151,6 @@ public class Scheduler {
         //testing
         System.out.println("process: " + currentRunning.pid + "sleeping now");
 
-        //stop the current Process
-        currentRunning.requestStop();
-
         // Clear currentRunning so the scheduler can select another process
         currentRunning = null;
     }
@@ -359,4 +356,9 @@ public class Scheduler {
         }
         return null;
     }
+
+    public void clearMessageInQueue(){
+        currentRunning.messageQueue.clear();
+    }
+
 }

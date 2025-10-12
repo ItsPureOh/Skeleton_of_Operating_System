@@ -13,12 +13,15 @@ public class OS {
 
     private static void startTheKernel() {
         // start the kernel
+        /*
+        waiting in the semaphore queue until previous process release
+         */
         ki.start();
-        //System.out.println("Kernel started");
 
         //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
         PCB cur = ki.getCurrentRunning();
-        // if currently running a process, call stop on it
+
+        // if currently running a process, call stop on it in order to run the kernel
         if (cur != null) {
             cur.stop();
         }
@@ -140,11 +143,18 @@ public class OS {
     }
 
     public static KernelMessage WaitForMessage() {
-        return null;
+        parameters.clear();
+        currentCall = CallType.WaitForMessage;
+        startTheKernel();
+        return (KernelMessage)retVal;
     }
 
     public static int GetPidByName(String name) {
-        return 0;
+        parameters.clear();
+        parameters.add(name);
+        currentCall = CallType.GetPIDByName;
+        startTheKernel();
+        return (int)retVal;
     }
 
     // Memory
