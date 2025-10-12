@@ -25,19 +25,21 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
          */
 
-        //Tests For Device Assignment
         /*
-        Multiple Processes access same device, appending new text to the same files open below
-         */
+        // Tests For Device Assignment
+        // Multiple Processes access same device, appending new text to the same files open below
         OS.CreateProcess(new TestDevice_MultipleProcess(), OS.PriorityType.realtime);
-        /*
-        Check all functionality of the device with the name
-         */
+        // Check all functionality of the device with the name
         OS.CreateProcess(new TestDeviceFile_1(), OS.PriorityType.realtime);
-        /*
-        Check all functionality of the device with the random seeds
-         */
+        // Check all functionality of the device with the random seeds
         OS.CreateProcess(new TestDeviceRandom_1(), OS.PriorityType.realtime);
+
+         */
+
+
+        //Test for Message Assignment
+        OS.CreateProcess(new TestMessagePing(), OS.PriorityType.realtime);
+        OS.CreateProcess(new TestMessagePong(), OS.PriorityType.realtime);
 
 
 

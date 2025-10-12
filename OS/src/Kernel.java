@@ -80,13 +80,9 @@ public class Kernel extends Process implements Device  {
                         scheduler.SwitchProcess();
                         System.out.println("Error: Current Process is missing");
                     }
+                    // Call stop() on myself(kernel), so that there is only one process is running
+                    this.stop();
                 }
-                else{
-                    throw new RuntimeException("Error: Kernel is stopped unexpectedly");
-                }
-
-                // Call stop() on myself(kernel), so that there is only one process is running
-                this.stop();
             }
     }
 

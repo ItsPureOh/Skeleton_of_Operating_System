@@ -13,12 +13,11 @@ public class OS {
 
     private static void startTheKernel() {
         // start the kernel
-        /*
-        waiting in the semaphore queue until previous process release
-         */
+        // waiting in the semaphore queue until previous process release
         ki.start();
 
         //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
+        // start up phase: cur == null
         PCB cur = ki.getCurrentRunning();
 
         // if currently running a process, call stop on it in order to run the kernel

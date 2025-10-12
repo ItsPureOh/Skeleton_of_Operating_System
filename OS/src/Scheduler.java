@@ -20,7 +20,7 @@ public class Scheduler {
     //kernel ref.
     private final Kernel ki;
     // hashMap that contains process table with PID
-    public HashMap<Integer, PCB> processMap;
+    public HashMap<Integer, PCB> processMap = new HashMap<>();
 
 
 
