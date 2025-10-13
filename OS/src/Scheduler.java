@@ -358,6 +358,9 @@ public class Scheduler {
     }
 
     public void clearMessageInQueue(){
+        if (currentRunning.messageQueue == null){
+            return;
+        }
         currentRunning.messageQueue.clear();
     }
 

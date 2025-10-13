@@ -36,14 +36,14 @@ public class Init extends UserlandProcess{
 
          */
 
-        /*
+
         //Test for Message Assignment
         OS.CreateProcess(new TestMessagePing(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMessagePong(), OS.PriorityType.realtime);
 
-         */
 
-        OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
+
+        //OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
         // preventing Init Exit so fast
         try {
             Thread.sleep(500);

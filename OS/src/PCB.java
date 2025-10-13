@@ -19,7 +19,7 @@ public class PCB { // Process Control Block
     public boolean timeout = false;
     public int [] vfsID = new int [10];         // Array of Virtual File System (VFS) handles associated with this process.
     public final String nameOfProcess;
-    public LinkedList<KernelMessage> messageQueue;
+    public LinkedList<KernelMessage> messageQueue = new LinkedList<>();
 
     // Constructor assigns PID and stores priority/process reference
     PCB(UserlandProcess up, OS.PriorityType priority) {

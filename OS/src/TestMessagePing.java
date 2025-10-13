@@ -19,7 +19,16 @@ public class TestMessagePing extends UserlandProcess{
 
             // receiving process
             KernelMessage segmentsReceived = OS.WaitForMessage();
-            System.out.println(Arrays.toString(segmentsReceived.message));
+            if (segmentsReceived != null) {
+                System.out.println(new String(segmentsReceived.message, StandardCharsets.UTF_8));
+            }
+            cooperate();
+
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

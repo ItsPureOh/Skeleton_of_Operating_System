@@ -69,17 +69,14 @@ public class Kernel extends Process implements Device  {
                 }
                 // TODO: Now that we have done the work asked of us, start some process then go to sleep.
                 // call start() on the next process to run, make sure kernel is running right now
-                if (!this.isStopped()){ // make sure kernel still running right now
-                    // current process should not be changed, since we never call SwitchProcess
-                    if (scheduler.currentRunning == null) {
-                        SwitchProcess();
-                    }
-                    scheduler.currentRunning.start();
+                // current process should not be changed, since we never call SwitchProcess
+                while (scheduler.currentRunning == null) {
+                    SwitchProcess();
                 }
+                scheduler.currentRunning.start();
 
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
-                System.out.println("Kernel stopped");
             }
 
     }
@@ -193,7 +190,6 @@ public class Kernel extends Process implements Device  {
         if (scheduler.checkWaitingProcess(km.targetPid) != null) {
             scheduler.removeWaitingProcess(km.targetPid);
             scheduler.Requeue(targetPCB);
-
         }
     }
 
@@ -206,13 +202,7 @@ public class Kernel extends Process implements Device  {
         // de-schedule ourselves (similar to what we did for Sleep() ) and add ourselves to a new data structure to hold processes that are waiting.
         scheduler.putCurrentProcessInTheWaitingMap();
 
-        // when process comeback from the waiting list
-        if (!getCurrentRunning().messageQueue.isEmpty()) {
-            return getCurrentRunning().messageQueue.remove();
-        }
-        else{
-            throw new RuntimeException("No message queue available");
-        }
+        return null;
     }
 
     private int GetPidByName(String name) {

@@ -15,7 +15,6 @@ public class OS {
         // start the kernel
         // waiting in the semaphore queue until previous process release
         ki.start();
-        System.out.println("Starting the kernel");
 
         //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
         // start up phase: cur == null
@@ -148,6 +147,9 @@ public class OS {
         parameters.add(name);
         currentCall = CallType.GetPIDByName;
         startTheKernel();
+        while (retVal == null) {
+            Thread.yield();
+        }
         return (int)retVal;
     }
 
