@@ -30,6 +30,7 @@ public class OS {
         */
         else{
             while (retVal == null) {
+                System.out.println("Waiting for current running...");
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -39,24 +40,26 @@ public class OS {
         }
     }
 
+    public enum PriorityType {realtime, interactive, background}
+
     public static void switchProcess() {
+
         parameters.clear();
         currentCall = CallType.SwitchProcess;
         startTheKernel();
     }
 
     public static void Startup(UserlandProcess init) {
-            ki = new Kernel();
-            CreateProcess(init, PriorityType.interactive);
-            CreateProcess(new IdleProcess(), PriorityType.background);
+
+        ki = new Kernel();
+        CreateProcess(init, PriorityType.interactive);
+        CreateProcess(new IdleProcess(), PriorityType.background);
     }
-
-    public enum PriorityType {realtime, interactive, background}
-
 
     // For assignment 1, you can ignore the priority. We will use that in assignment 2
     // this is the function that User Mode Calling to create a new process
     public static int CreateProcess(UserlandProcess up, PriorityType priority) {
+
         parameters.clear();
         parameters.add(up);
         parameters.add(priority);
@@ -66,6 +69,7 @@ public class OS {
     }
 
     public static int GetPID() {
+
         parameters.clear();
         currentCall = CallType.GetPID;
         startTheKernel();
@@ -73,12 +77,14 @@ public class OS {
     }
 
     public static void Exit() {
+
         parameters.clear();
         currentCall = CallType.Exit;
         startTheKernel();
     }
 
     public static void Sleep(int mills) {
+
         parameters.clear();
         parameters.add(mills);
         currentCall = CallType.Sleep;
@@ -87,6 +93,7 @@ public class OS {
 
     // Devices
     public static int Open(String s) {
+
         parameters.clear();
         parameters.add(s);
         currentCall = CallType.Open;
@@ -95,6 +102,7 @@ public class OS {
     }
 
     public static void Close(int id) {
+
         parameters.clear();
         parameters.add(id);
         currentCall = CallType.Close;
@@ -102,6 +110,7 @@ public class OS {
     }
 
     public static byte[] Read(int id, int size) {
+
         parameters.clear();
         parameters.add(id);
         parameters.add(size);
@@ -111,6 +120,7 @@ public class OS {
     }
 
     public static void Seek(int id, int to) {
+
         parameters.clear();
         parameters.add(id);
         parameters.add(to);
@@ -119,6 +129,7 @@ public class OS {
     }
 
     public static int Write(int id, byte[] data) {
+
         parameters.clear();
         parameters.add(id);
         parameters.add(data);
@@ -129,6 +140,7 @@ public class OS {
 
     // Messages
     public static void SendMessage(KernelMessage km) {
+
         parameters.clear();
         parameters.add(km);
         currentCall = CallType.SendMessage;
@@ -136,6 +148,7 @@ public class OS {
     }
 
     public static KernelMessage WaitForMessage() {
+
         parameters.clear();
         currentCall = CallType.WaitForMessage;
         startTheKernel();
@@ -143,6 +156,7 @@ public class OS {
     }
 
     public static int GetPidByName(String name) {
+
         parameters.clear();
         parameters.add(name);
         currentCall = CallType.GetPIDByName;

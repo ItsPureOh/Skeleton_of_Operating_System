@@ -46,12 +46,10 @@ public class Kernel extends Process implements Device  {
                     case Open -> OS.retVal = Open((String)OS.parameters.get(0));
                     case Close -> {
                         Close((int)OS.parameters.get(0));
-                        OS.retVal = 0;
                     }
                     case Read -> OS.retVal = Read((int)OS.parameters.get(0), (int)OS.parameters.get(1));
                     case Seek -> {
                         Seek((int)OS.parameters.get(0), (int)OS.parameters.get(1));
-                        OS.retVal = 0;
                     }
                     case Write -> OS.retVal = Write((int)OS.parameters.get(0), (byte[]) OS.parameters.get(1));
 
@@ -74,7 +72,6 @@ public class Kernel extends Process implements Device  {
                     SwitchProcess();
                 }
                 scheduler.currentRunning.start();
-
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
             }
@@ -201,7 +198,7 @@ public class Kernel extends Process implements Device  {
         }
         // de-schedule ourselves (similar to what we did for Sleep() ) and add ourselves to a new data structure to hold processes that are waiting.
         scheduler.putCurrentProcessInTheWaitingMap();
-
+        scheduler.removeFromPriorityQueue();
         return null;
     }
 

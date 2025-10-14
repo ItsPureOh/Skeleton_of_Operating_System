@@ -189,7 +189,7 @@ public class Scheduler {
      * based on its current priority. Processes that are finished
      * are not requeued (handled by caller).
      *
-     * @param currentRunningProcess the process to requeue
+     * @param  currentRunningProcess the process to requeue
      */
     public void Requeue(PCB currentRunningProcess){
 
@@ -362,6 +362,19 @@ public class Scheduler {
             return;
         }
         currentRunning.messageQueue.clear();
+    }
+
+    public void removeFromPriorityQueue(){
+        if (currentRunning.getPriority() == OS.PriorityType.realtime){
+            realtimeProcess.remove(currentRunning);
+        }
+        else if (currentRunning.getPriority() == OS.PriorityType.interactive){
+            interactiveProcess.remove(currentRunning);
+        }
+        else if (currentRunning.getPriority() == OS.PriorityType.background){
+            backgroundProcess.remove(currentRunning);
+        }
+        sleepingQueue.remove(currentRunning);
     }
 
 }
