@@ -148,7 +148,6 @@ public class OS {
     }
 
     public static KernelMessage WaitForMessage() {
-
         parameters.clear();
         currentCall = CallType.WaitForMessage;
         startTheKernel();
@@ -156,7 +155,6 @@ public class OS {
     }
 
     public static int GetPidByName(String name) {
-
         parameters.clear();
         parameters.add(name);
         currentCall = CallType.GetPIDByName;

@@ -24,6 +24,8 @@ public class TestMessagePong extends UserlandProcess {
             }
             i++;
             cooperate();
+
+            System.out.println("Pong Pong Pong");
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {

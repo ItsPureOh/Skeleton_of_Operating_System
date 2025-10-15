@@ -22,9 +22,10 @@ public class TestMessagePing extends UserlandProcess{
             if (segmentsReceived != null) {
                 System.out.println(new String(segmentsReceived.message, StandardCharsets.UTF_8));
             }
+
             i++;
             cooperate();
-
+            System.out.println("Ping Ping Ping");
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
