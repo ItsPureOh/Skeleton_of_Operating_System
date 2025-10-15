@@ -64,5 +64,6 @@ public abstract class Process implements Runnable{
             this.quantumExpired = false;
             OS.switchProcess();
         }
+        System.out.println("Quantum Not Expired Yet");
     }
 }

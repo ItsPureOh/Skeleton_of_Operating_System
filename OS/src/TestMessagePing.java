@@ -6,31 +6,23 @@ public class TestMessagePing extends UserlandProcess{
     @Override
     public void main() {
         System.out.println("I'm Ping Process");
-        int i = 0;
-        String message = "Ping, Type: ";
-
+        // wrap message into the message object
+        KernelMessage segmentsSent = new KernelMessage();
+        String message = "PING - ";
+        segmentsSent.targetPid = OS.GetPidByName("TestMessagePong");
+        segmentsSent.messageType = 99;
+        segmentsSent.message = (message + segmentsSent.messageType).getBytes(StandardCharsets.UTF_8);
         while (true) {
-            // sending process
-            KernelMessage segmentsSent = new KernelMessage();
-            segmentsSent.targetPid = OS.GetPidByName("TestMessagePong");
-            segmentsSent.messageType = i;
-            segmentsSent.message = (message + segmentsSent.messageType).getBytes(StandardCharsets.UTF_8);
+            // send sends
             OS.SendMessage(segmentsSent);
-
+            /*
             // receiving process
             KernelMessage segmentsReceived = OS.WaitForMessage();
             if (segmentsReceived != null) {
                 System.out.println(new String(segmentsReceived.message, StandardCharsets.UTF_8));
             }
-
-            i++;
+             */
             cooperate();
-            System.out.println("Ping Ping Ping");
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

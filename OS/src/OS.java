@@ -140,7 +140,6 @@ public class OS {
 
     // Messages
     public static void SendMessage(KernelMessage km) {
-
         parameters.clear();
         parameters.add(km);
         currentCall = CallType.SendMessage;

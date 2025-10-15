@@ -181,7 +181,7 @@ public class Kernel extends Process implements Device  {
         PCB targetPCB = scheduler.processMap.get(copyMessage.targetPid);
         // pre-check target PCB exist
         if (targetPCB == null) {
-            // throw new RuntimeException("Target PCB not found in scheduler");
+            throw new RuntimeException("Target PCB not found in scheduler");
         }
         // add message object into the target PCB's message queue
         targetPCB.messageQueue.add(copyMessage);
@@ -193,6 +193,7 @@ public class Kernel extends Process implements Device  {
             // add it back to the priority queue
             scheduler.Requeue(targetPCB);
         }
+        OS.switchProcess();
     }
 
     // current
