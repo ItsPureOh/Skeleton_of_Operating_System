@@ -364,17 +364,16 @@ public class Scheduler {
         currentRunning.messageQueue.clear();
     }
 
-    public void removeFromPriorityQueue(){
-        if (currentRunning.getPriority() == OS.PriorityType.realtime){
-            realtimeProcess.remove(currentRunning);
+    public void removeFromPriorityQueue(PCB process){
+        if (process.getPriority() == OS.PriorityType.realtime){
+            realtimeProcess.remove(process);
         }
-        else if (currentRunning.getPriority() == OS.PriorityType.interactive){
-            interactiveProcess.remove(currentRunning);
+        else if (process.getPriority() == OS.PriorityType.interactive){
+            interactiveProcess.remove(process);
         }
-        else if (currentRunning.getPriority() == OS.PriorityType.background){
-            backgroundProcess.remove(currentRunning);
+        else if (process.getPriority() == OS.PriorityType.background){
+            backgroundProcess.remove(process);
         }
-        sleepingQueue.remove(currentRunning);
+        sleepingQueue.remove(process);
     }
-
 }

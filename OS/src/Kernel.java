@@ -144,6 +144,7 @@ public class Kernel extends Process implements Device  {
         //schedule should choose something else to run
         OS.switchProcess();
     }
+
     /**
      * Returns the PID of the currently running process.
      * @return int the PID of the current process
@@ -176,16 +177,20 @@ public class Kernel extends Process implements Device  {
         KernelMessage copyMessage = new KernelMessage(km);
         // assigning sender pid
         copyMessage.senderPid = scheduler.currentRunning.pid;
+        // look up the map, find the target PCB instance
         PCB targetPCB = scheduler.processMap.get(copyMessage.targetPid);
         // pre-check target PCB exist
         if (targetPCB == null) {
-            throw new RuntimeException("Target PCB not found in scheduler");
+            // throw new RuntimeException("Target PCB not found in scheduler");
         }
+        // add message object into the target PCB's message queue
         targetPCB.messageQueue.add(copyMessage);
 
         // if this PCB is waiting for a message (see below), restore it to its proper runnable queue
         if (scheduler.checkWaitingProcess(km.targetPid) != null) {
+            // remove it from the waiting PCB queue
             scheduler.removeWaitingProcess(km.targetPid);
+            // add it back to the priority queue
             scheduler.Requeue(targetPCB);
         }
     }
@@ -198,7 +203,7 @@ public class Kernel extends Process implements Device  {
         }
         // de-schedule ourselves (similar to what we did for Sleep() ) and add ourselves to a new data structure to hold processes that are waiting.
         scheduler.putCurrentProcessInTheWaitingMap();
-        scheduler.removeFromPriorityQueue();
+        scheduler.removeFromPriorityQueue(scheduler.getCurrentRunningProcess());
         return null;
     }
 

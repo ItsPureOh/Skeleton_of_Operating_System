@@ -22,6 +22,7 @@ public class TestMessagePong extends UserlandProcess {
             if (segmentsReceived != null) {
                 System.out.println(new String(segmentsReceived.message, StandardCharsets.UTF_8));
             }
+            i++;
             cooperate();
             try {
                 Thread.sleep(50);
