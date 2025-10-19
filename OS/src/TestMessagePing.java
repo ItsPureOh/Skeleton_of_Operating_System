@@ -13,16 +13,16 @@ public class TestMessagePing extends UserlandProcess{
         segmentsSent.messageType = 99;
         segmentsSent.message = (message + segmentsSent.messageType).getBytes(StandardCharsets.UTF_8);
         while (true) {
-            // send sends
             OS.SendMessage(segmentsSent);
-            /*
-            // receiving process
-            KernelMessage segmentsReceived = OS.WaitForMessage();
-            if (segmentsReceived != null) {
-                System.out.println(new String(segmentsReceived.message, StandardCharsets.UTF_8));
-            }
-             */
+            System.out.println("PING send Message Successfully");
+            KernelMessage recv = OS.WaitForMessage();
+            System.out.println(new String(recv.message, StandardCharsets.UTF_8));
             cooperate();
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

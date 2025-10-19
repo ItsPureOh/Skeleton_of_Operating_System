@@ -3,9 +3,8 @@ public class IdleProcess extends UserlandProcess {
     public void main() {
         while (true) {
             try {
-                System.out.println("idle");
                 cooperate();
-                Thread.sleep(300);
+                Thread.sleep(50);
             } catch (Exception e) { }
         }
     }

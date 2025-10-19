@@ -42,15 +42,9 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestMessagePing(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMessagePong(), OS.PriorityType.realtime);
 
-
-
-
-        //OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
-
-
         // preventing Init Exit so fast
         try {
-            Thread.sleep(200);
+            Thread.sleep(300);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

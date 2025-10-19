@@ -27,32 +27,22 @@ public class Kernel extends Process implements Device  {
                 // Dispatch based on the current system call from a user process
                 switch (OS.currentCall) {
                     // extract parameters and create a new process
-                    case CreateProcess ->{
-                            OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0),
-                                    (OS.PriorityType) OS.parameters.get(1));
-                    }
+                    case CreateProcess -> OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0), (OS.PriorityType) OS.parameters.get(1));
+
                     // context switch request
-                    case SwitchProcess -> {
-                        SwitchProcess();
-                    }
+                    case SwitchProcess -> SwitchProcess();
+
                     // Priority scheduler calls
-                    case Sleep -> {
-                        Sleep((int) OS.parameters.get(0));
-                    }
+                    case Sleep -> Sleep((int) OS.parameters.get(0));
                     case GetPID -> OS.retVal = GetPid();
                     case Exit -> Exit();
 
                     // Devices
                     case Open -> OS.retVal = Open((String)OS.parameters.get(0));
-                    case Close -> {
-                        Close((int)OS.parameters.get(0));
-                    }
+                    case Close -> Close((int)OS.parameters.get(0));
                     case Read -> OS.retVal = Read((int)OS.parameters.get(0), (int)OS.parameters.get(1));
-                    case Seek -> {
-                        Seek((int)OS.parameters.get(0), (int)OS.parameters.get(1));
-                    }
+                    case Seek -> Seek((int)OS.parameters.get(0), (int)OS.parameters.get(1));
                     case Write -> OS.retVal = Write((int)OS.parameters.get(0), (byte[]) OS.parameters.get(1));
-
 
                     // Messages
                     case GetPIDByName -> OS.retVal = GetPidByName((String)OS.parameters.get(0));
@@ -75,7 +65,6 @@ public class Kernel extends Process implements Device  {
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
             }
-
     }
 
     /**
@@ -183,29 +172,45 @@ public class Kernel extends Process implements Device  {
         if (targetPCB == null) {
             throw new RuntimeException("Target PCB not found in scheduler");
         }
+        if (targetPCB.messageQueue == null) {
+            targetPCB.messageQueue = new java.util.LinkedList<>();
+        }
         // add message object into the target PCB's message queue
         targetPCB.messageQueue.add(copyMessage);
 
         // if this PCB is waiting for a message (see below), restore it to its proper runnable queue
-        if (scheduler.checkWaitingProcess(km.targetPid) != null) {
+        if (scheduler.checkWaitingProcess(copyMessage.targetPid) != null) {
             // remove it from the waiting PCB queue
-            scheduler.removeWaitingProcess(km.targetPid);
+            scheduler.removeWaitingProcess(copyMessage.targetPid);
             // add it back to the priority queue
             scheduler.Requeue(targetPCB);
         }
-        OS.switchProcess();
+        SwitchProcess();
     }
 
     // current
     private KernelMessage WaitForMessage() {
-        // if current Process has message in queue
-        if (!getCurrentRunning().messageQueue.isEmpty()) {
-            return getCurrentRunning().messageQueue.remove();
+        PCB me = getCurrentRunning();
+        // fast path
+        if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
+            return me.messageQueue.remove();
         }
-        // de-schedule ourselves (similar to what we did for Sleep() ) and add ourselves to a new data structure to hold processes that are waiting.
-        scheduler.putCurrentProcessInTheWaitingMap();
-        scheduler.removeFromPriorityQueue(scheduler.getCurrentRunningProcess());
-        return null;
+        // block until a message arrives
+        while (true) {
+            // mark as waiting and ensure it's NOT in a ready queue
+            scheduler.putCurrentProcessInTheWaitingMap();
+            scheduler.removeFromPriorityQueue(me);
+
+            // yield so someone else can run and deliver the message
+            OS.switchProcess();
+
+            // when we're scheduled again, re-check our inbox
+            me = getCurrentRunning();
+            if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
+                return me.messageQueue.remove();
+            }
+            // loop until a message is present
+        }
     }
 
     private int GetPidByName(String name) {

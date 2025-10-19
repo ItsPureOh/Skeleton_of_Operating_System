@@ -22,8 +22,6 @@ public class Scheduler {
     // hashMap that contains process table with PID
     public HashMap<Integer, PCB> processMap = new HashMap<>();
 
-
-
     public Scheduler(Kernel k) {
         // Timer runs every 250ms (quantum length).
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -31,6 +29,7 @@ public class Scheduler {
                 if (currentRunning != null) {
                     // Flag the process to stop at next cooperate()
                     currentRunning.timeout = true;
+
                     currentRunning.requestStop();
                 }
             }
@@ -91,13 +90,15 @@ public class Scheduler {
     public void SwitchProcess(){
         PCB cur = currentRunning;
         PCB next = null;
-        currentRunning = null;
+        //currentRunning = null;
 
         // Check if the current process timed out and apply demotion if needed
         // the current process is not finished, requeue it based on priority
         if (cur != null && !cur.isDone()) {
             Demote(cur);
-            Requeue(cur);
+            if (!waitingProcess.containsKey(cur.pid)) {
+                Requeue(cur);
+            }
         }
 
         // Wake up sleeping processes whose timers have expired
@@ -127,6 +128,7 @@ public class Scheduler {
 
         // assign the next process as running
         currentRunning = next;
+        System.out.println("Current running is " + currentRunning.getName());
     }
 
     /**
@@ -204,6 +206,10 @@ public class Scheduler {
             return;
         }
 
+        // >>> KEY GUARD: don't requeue if this PID is waiting-for-message
+        if(!waitingProcess.isEmpty()){
+            if (waitingProcess.containsKey(currentRunningProcess.pid)) return;
+        }
         /*
         Nothing is currently running (we are at startup). We just don’t put null on our list.
         The user process is done() – we just don’t add it to the list.

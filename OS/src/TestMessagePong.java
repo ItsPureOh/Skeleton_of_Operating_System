@@ -12,17 +12,20 @@ public class TestMessagePong extends UserlandProcess {
         segmentsSent.messageType = 100;
         segmentsSent.message = (message + segmentsSent.messageType).getBytes(StandardCharsets.UTF_8);
         while (true) {
-            // send message object to Pong
-            OS.SendMessage(segmentsSent);
-
-            // receiving process
-            KernelMessage segmentsReceived = OS.WaitForMessage();
-            //actually get the message
-            if (segmentsReceived != null) {
-                System.out.println(new String(segmentsReceived.message, StandardCharsets.UTF_8));
+            KernelMessage recv = OS.WaitForMessage();
+            System.out.println("PONG Received Message Successfully");
+            if (segmentsSent.targetPid <= 0) {
+                segmentsSent.targetPid = OS.GetPidByName("TestMessagePing");
+                if (segmentsSent.targetPid <= 0) { cooperate(); continue; }
             }
-
+            OS.SendMessage(segmentsSent);
+            System.out.println(new String(recv.message, StandardCharsets.UTF_8));
             cooperate();
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
