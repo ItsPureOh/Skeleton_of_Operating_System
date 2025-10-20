@@ -68,6 +68,7 @@ public class Scheduler {
         if (currentRunning == null) {
             SwitchProcess();
         }
+
         //store PCB in hashMap
         processMap.put(pcb.pid, pcb);
 
@@ -104,6 +105,9 @@ public class Scheduler {
         // Wake up sleeping processes whose timers have expired
         SleepingCheck();
 
+        // check the waiting queue, if any process's message queue is not empty, put that back to priority queue
+
+
         // Select the next process to run (probabilistic choice by priority)
         do {
             next = ProbabilisticProcessPicking();
@@ -123,12 +127,10 @@ public class Scheduler {
                         (next.getPriority() == OS.PriorityType.realtime ? "realtime" :
                                 next.getPriority() == OS.PriorityType.interactive ? "interactive" :
                                         "background") + ")"));
-
         PrintQueues();
 
         // assign the next process as running
         currentRunning = next;
-        System.out.println("Current running is " + currentRunning.getName());
     }
 
     /**
@@ -313,28 +315,27 @@ public class Scheduler {
     /**
      * Prints the current contents of all process queues for debugging.
      */
-    private void PrintQueues() {
+    public void PrintQueues() {
         System.out.print("Realtime Queue: ");
-        for (PCB p : realtimeProcess) {
-            System.out.print(p.pid + " ");
-        }
+        for (PCB p : realtimeProcess) System.out.print(p.pid + " ");
         System.out.println();
 
         System.out.print("Interactive Queue: ");
-        for (PCB p : interactiveProcess) {
-            System.out.print(p.pid + " ");
-        }
+        for (PCB p : interactiveProcess) System.out.print(p.pid + " ");
         System.out.println();
 
         System.out.print("Background Queue: ");
-        for (PCB p : backgroundProcess) {
-            System.out.print(p.pid + " ");
-        }
+        for (PCB p : backgroundProcess) System.out.print(p.pid + " ");
         System.out.println();
 
         System.out.print("Sleeping Queue: ");
-        for (PCB p : sleepingQueue) {
-            System.out.print(p.pid + " ");
+        for (PCB p : sleepingQueue) System.out.print(p.pid + " ");
+        System.out.println();
+
+        System.out.print("Waiting Map: ");
+        for (PCB p : waitingProcess.values()) {
+            int inbox = (p.messageQueue == null) ? 0 : p.messageQueue.size();
+            System.out.print(p.pid + "[inbox=" + inbox + "] ");
         }
         System.out.println("\n");
     }

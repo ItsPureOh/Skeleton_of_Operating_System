@@ -23,7 +23,7 @@ public class Kernel extends Process implements Device  {
      * Runs indefinitely as long as the OS is active.
      */
     public void main() {
-            while (true) { // kernel runs forever
+        while (true) { // kernel runs forever
                 // Dispatch based on the current system call from a user process
                 switch (OS.currentCall) {
                     // extract parameters and create a new process
@@ -61,6 +61,7 @@ public class Kernel extends Process implements Device  {
                 while (scheduler.currentRunning == null) {
                     SwitchProcess();
                 }
+                System.out.println("currently Running Process is: " + scheduler.currentRunning.getName());
                 scheduler.currentRunning.start();
                 // Call stop() on myself(kernel), so that there is only one process is running
                 this.stop();
@@ -163,9 +164,10 @@ public class Kernel extends Process implements Device  {
      */
 
     private void SendMessage(KernelMessage km) {
+        PCB p = getCurrentRunning();
         KernelMessage copyMessage = new KernelMessage(km);
         // assigning sender pid
-        copyMessage.senderPid = scheduler.currentRunning.pid;
+        copyMessage.senderPid = p.pid;
         // look up the map, find the target PCB instance
         PCB targetPCB = scheduler.processMap.get(copyMessage.targetPid);
         // pre-check target PCB exist
@@ -177,6 +179,7 @@ public class Kernel extends Process implements Device  {
         }
         // add message object into the target PCB's message queue
         targetPCB.messageQueue.add(copyMessage);
+        System.out.println("Sending Message From " + copyMessage.senderPid + " to " + targetPCB.pid);
 
         // if this PCB is waiting for a message (see below), restore it to its proper runnable queue
         if (scheduler.checkWaitingProcess(copyMessage.targetPid) != null) {
@@ -190,17 +193,19 @@ public class Kernel extends Process implements Device  {
 
     // current
     private KernelMessage WaitForMessage() {
-        PCB me = getCurrentRunning();
+        PCB me = scheduler.currentRunning;
         // fast path
         if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
             return me.messageQueue.remove();
         }
         // block until a message arrives
         while (true) {
+            System.out.println("No Message, Gets Into Wating Queue");
             // mark as waiting and ensure it's NOT in a ready queue
             scheduler.putCurrentProcessInTheWaitingMap();
             scheduler.removeFromPriorityQueue(me);
-
+            System.out.println("END");
+            scheduler.PrintQueues();
             // yield so someone else can run and deliver the message
             OS.switchProcess();
 

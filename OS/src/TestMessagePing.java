@@ -15,14 +15,18 @@ public class TestMessagePing extends UserlandProcess{
         while (true) {
             OS.SendMessage(segmentsSent);
             System.out.println("PING send Message Successfully");
-            KernelMessage recv = OS.WaitForMessage();
-            System.out.println(new String(recv.message, StandardCharsets.UTF_8));
             cooperate();
+            KernelMessage recv = OS.WaitForMessage();
+            System.out.println("PING received Message Successfully");
+            System.out.println(new String(recv.message, StandardCharsets.UTF_8));
+            /*
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+
+             */
         }
     }
 }
