@@ -13,7 +13,8 @@ public class Scheduler {
     private Timer timer = new Timer(true);          // Timer simulates the hardware timer chip. It fires regularly to expire quantums.
     public PCB currentRunning;                               // Reference to the process that is currently running.
     Random rand = new Random();
-    final private LinkedList<PCB> sleepingQueue = new LinkedList<>(); // new list for sleeping processes
+    //final private LinkedList<PCB> sleepingQueue = new LinkedList<>(); // new list for sleeping processes
+    private final PriorityQueue<PCB> sleepingQueue = new PriorityQueue<>(Comparator.comparingLong(pcb -> pcb.wakeupTime));
     // priority queue list
     final private LinkedList<PCB> realtimeProcess = new LinkedList<>();
     final private LinkedList<PCB> interactiveProcess = new LinkedList<>();
@@ -151,13 +152,10 @@ public class Scheduler {
         // Calculate when the process should wake up
         long wakeupTime = System.currentTimeMillis() + milliseconds;
         currentRunning.setWakeupTime(wakeupTime);
-
         // add that sleeping process to Sleeping Process List
-        sleepingQueue.addLast(currentRunning);
-
+        sleepingQueue.add(currentRunning);
         //testing
         System.out.println("process: " + currentRunning.pid + "sleeping now");
-
         // Clear currentRunning so the scheduler can select another process
         currentRunning = null;
     }
@@ -241,6 +239,7 @@ public class Scheduler {
      */
     private void SleepingCheck(){
         long now = System.currentTimeMillis();
+        /*
         // check sleep process should be wakening
         for (int i = 0; i < sleepingQueue.size(); i++) {
             PCB p = sleepingQueue.get(i);
@@ -258,6 +257,23 @@ public class Scheduler {
                 sleepingQueue.remove(i);
                 i--; // adjust index since list shrinks
             }
+
+         */
+        while (!sleepingQueue.isEmpty() && sleepingQueue.peek().getWakeupTime() <= now) {
+            PCB p = sleepingQueue.poll();
+
+            // If process wake-up time has passed, requeue it
+            if (p.getWakeupTime() <= now) {
+                // move to the correct queue
+                if (p.getPriority() == OS.PriorityType.realtime) {
+                    realtimeProcess.addLast(p);
+                } else if (p.getPriority() == OS.PriorityType.interactive) {
+                    interactiveProcess.addLast(p);
+                } else {
+                    backgroundProcess.addLast(p);
+                }
+            }
+            System.out.println("Process " + p.pid + " woke up and requeued.");
         }
     }
 

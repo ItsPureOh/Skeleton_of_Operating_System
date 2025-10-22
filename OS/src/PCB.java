@@ -17,7 +17,7 @@ public class PCB { // Process Control Block
     public int pid;
     private OS.PriorityType priority;
     private final UserlandProcess process;
-    private long wakeupTime;    // time (in milliseconds) when this process should wake up from sleep and return to the ready queue.
+    public long wakeupTime;    // time (in milliseconds) when this process should wake up from sleep and return to the ready queue.
     public int timeoutFrequency = 0;
     public boolean timeout = false;
     public int [] vfsID = new int [10];         // Array of Virtual File System (VFS) handles associated with this process.

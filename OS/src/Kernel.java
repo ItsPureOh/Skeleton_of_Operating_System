@@ -84,8 +84,7 @@ public class Kernel extends Process implements Device  {
      * @return int the PID of the created process
      */
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
-        scheduler.CreateProcess(up, priority);
-        return getCurrentRunning().pid;
+        return scheduler.CreateProcess(up, priority);
     }
 
     /**
