@@ -38,8 +38,14 @@ public class Init extends UserlandProcess{
 
 
         //Test for Message Assignment
+        // Ping - Pong Test
         OS.CreateProcess(new TestMessagePing(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMessagePong(), OS.PriorityType.realtime);
+        // Network - like Test
+        OS.CreateProcess(new TestMessage_MessageA(), OS.PriorityType.realtime);
+        OS.CreateProcess(new TestMessage_MessageB(), OS.PriorityType.realtime);
+
+
         OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
         OS.CreateProcess(new GoodbyeWorld(), OS.PriorityType.realtime);
 
