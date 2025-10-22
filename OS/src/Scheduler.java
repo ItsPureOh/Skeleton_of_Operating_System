@@ -2,26 +2,39 @@ import java.sql.SQLOutput;
 import java.time.Clock;
 import java.util.*;
 
+/**
+ * Scheduler class.
+ * ----------------
+ * Manages process scheduling, priority queues, sleeping processes,
+ * waiting message processes, and periodic quantum expiration via a timer.
+ * Handles switching, demotion, sleeping, and probabilistic scheduling.
+ */
 public class Scheduler {
-    // Timer simulates the hardware timer chip. It fires regularly to expire quantums.
-    private Timer timer = new Timer(true);
-    // Reference to the process that is currently running.
-    public PCB currentRunning;
-    //random init
+    private Timer timer = new Timer(true);          // Timer simulates the hardware timer chip. It fires regularly to expire quantums.
+    public PCB currentRunning;                               // Reference to the process that is currently running.
     Random rand = new Random();
-    // new list for sleeping processes
-    final private LinkedList<PCB> sleepingQueue = new LinkedList<>();
+    final private LinkedList<PCB> sleepingQueue = new LinkedList<>(); // new list for sleeping processes
     // priority queue list
     final private LinkedList<PCB> realtimeProcess = new LinkedList<>();
     final private LinkedList<PCB> interactiveProcess = new LinkedList<>();
     final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
+
     // waiting message queue list
     final private HashMap<Integer, PCB> waitingProcess = new HashMap<>();
+
     //kernel ref.
     private final Kernel ki;
+
     // hashMap that contains process table with PID
     public HashMap<Integer, PCB> processMap = new HashMap<>();
 
+    /**
+     * Constructor.
+     * Initializes the scheduler and starts a timer that expires every 250ms.
+     * Each tick marks the current process as timed out.
+     * @param k reference to the kernel instance
+     * @return void
+     */
     public Scheduler(Kernel k) {
         // Timer runs every 250ms (quantum length).
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -38,13 +51,12 @@ public class Scheduler {
     }
 
     /**
-     * Creates a new process, wraps it in a PCB, and enqueues it in the appropriate
-     * priority queue managed by the scheduler. If no process is currently running,
-     * immediately switches to a runnable process.
-     *
-     * @param up the userland process to wrap in a PCB
-     * @param p the priority level of the new process (realtime, interactive, or background)
-     * @return int the PID of the newly created process
+     * Creates and registers a new process.
+     * Wraps the userland process in a PCB, enqueues it based on priority,
+     * stores it in the process map, and ensures a process is running.
+     * @param up the userland process to create
+     * @param p the priority type (realtime, interactive, background)
+     * @return int the PID of the created process
      */
     public int CreateProcess(UserlandProcess up, OS.PriorityType p){
         // Wrap the user process in a PCB (gives it a PID, etc.)
@@ -77,22 +89,14 @@ public class Scheduler {
     }
 
     /**
-     * Switches execution from the current process to the next runnable process.
-     * Steps performed:
-     *   <1>Demotes the current process if it has timed out too many times.
-     *   <2>Requeues the current process if it is not finished.
-     *   <3>Wakes up any processes whose sleep time has expired.
-     *   <4>Selects the next process to run using probabilistic scheduling:
-     *       60% realtime, 30% interactive, 10% background (if available).
-     *       Falls back to interactive or background if higher priorities are empty.
-     *
+     * Switches CPU control from the current process to the next.
+     * Handles demotion, requeueing, waking sleepers, and process selection.
      * @return void
      */
     public void SwitchProcess(){
         PCB cur = currentRunning;
         PCB next = null;
         //currentRunning = null;
-
         // Check if the current process timed out and apply demotion if needed
         // the current process is not finished, requeue it based on priority
         if (cur != null && !cur.isDone()) {
@@ -101,12 +105,8 @@ public class Scheduler {
                 Requeue(cur);
             }
         }
-
         // Wake up sleeping processes whose timers have expired
         SleepingCheck();
-
-        // check the waiting queue, if any process's message queue is not empty, put that back to priority queue
-
 
         // Select the next process to run (probabilistic choice by priority)
         do {
@@ -117,6 +117,7 @@ public class Scheduler {
             }
         } while (next == null || next.isDone());
 
+        /*
         System.out.println("Switching from " +
                 (cur == null ? "kernel" : cur.pid + "(" +
                         (cur.getPriority() == OS.PriorityType.realtime ? "realtime" :
@@ -127,6 +128,8 @@ public class Scheduler {
                         (next.getPriority() == OS.PriorityType.realtime ? "realtime" :
                                 next.getPriority() == OS.PriorityType.interactive ? "interactive" :
                                         "background") + ")"));
+
+         */
         PrintQueues();
 
         // assign the next process as running
@@ -383,4 +386,9 @@ public class Scheduler {
         }
         sleepingQueue.remove(process);
     }
+
+    public void removeCurrentProcessFromWaitingProcessMap(){
+        waitingProcess.remove(currentRunning.pid);
+    }
+
 }

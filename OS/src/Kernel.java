@@ -3,94 +3,93 @@ import java.util.HashMap;
 /**
  * Kernel Class
  * -------------
- * This class represents the core of a simulated operating system kernel.
- * It extends the Process class and implements the Device interface, handling both
- * process scheduling and device management through a Virtual File System (VFS).
- *
- * The Kernel manages system calls from user processes, dispatching them
- * to the appropriate handlers (e.g., CreateProcess, Sleep, Read, Write, etc.).
- * It uses the Scheduler to manage CPU time among processes and interacts
- * with the VirtualFileSystem for I/O operations.
+ * Core of the simulated operating system.
+ * Handles process scheduling, system calls, and message passing.
+ * Works closely with the Scheduler and Virtual File System (VFS).
  */
 public class Kernel extends Process implements Device  {
+    // Handles process queues & context switching
     private Scheduler scheduler = new Scheduler(this);
+    // Simulated file system for I/O
     private VirtualFileSystem vfs = new VirtualFileSystem();
+
     public Kernel() {
     }
     /**
-     * The main kernel loop.
-     * Continuously processes system calls and performs scheduling.
-     * Runs indefinitely as long as the OS is active.
+     * Main kernel loop.
+     * Continuously handles system calls from userland processes
+     * and switches execution between them.
+     * @return void
      */
     public void main() {
         while (true) { // kernel runs forever
-                // Dispatch based on the current system call from a user process
-                switch (OS.currentCall) {
-                    // extract parameters and create a new process
-                    case CreateProcess -> OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0), (OS.PriorityType) OS.parameters.get(1));
+            // Dispatch based on the current system call from a user process
+            switch (OS.currentCall) {
+                // extract parameters and create a new process
+                case CreateProcess -> OS.retVal = CreateProcess((UserlandProcess) OS.parameters.get(0), (OS.PriorityType) OS.parameters.get(1));
 
-                    // context switch request
-                    case SwitchProcess -> SwitchProcess();
+                // context switch request
+                case SwitchProcess -> SwitchProcess();
 
-                    // Priority scheduler calls
-                    case Sleep -> Sleep((int) OS.parameters.get(0));
-                    case GetPID -> OS.retVal = GetPid();
-                    case Exit -> Exit();
+                // Priority scheduler calls
+                case Sleep -> Sleep((int) OS.parameters.get(0));
+                case GetPID -> OS.retVal = GetPid();
+                case Exit -> Exit();
 
-                    // Devices
-                    case Open -> OS.retVal = Open((String)OS.parameters.get(0));
-                    case Close -> Close((int)OS.parameters.get(0));
-                    case Read -> OS.retVal = Read((int)OS.parameters.get(0), (int)OS.parameters.get(1));
-                    case Seek -> Seek((int)OS.parameters.get(0), (int)OS.parameters.get(1));
-                    case Write -> OS.retVal = Write((int)OS.parameters.get(0), (byte[]) OS.parameters.get(1));
+                // Devices
+                case Open -> OS.retVal = Open((String)OS.parameters.get(0));
+                case Close -> Close((int)OS.parameters.get(0));
+                case Read -> OS.retVal = Read((int)OS.parameters.get(0), (int)OS.parameters.get(1));
+                case Seek -> Seek((int)OS.parameters.get(0), (int)OS.parameters.get(1));
+                case Write -> OS.retVal = Write((int)OS.parameters.get(0), (byte[]) OS.parameters.get(1));
 
-                    // Messages
-                    case GetPIDByName -> OS.retVal = GetPidByName((String)OS.parameters.get(0));
-                    case SendMessage -> SendMessage((KernelMessage) OS.parameters.get(0));
-                    case WaitForMessage -> OS.retVal = WaitForMessage();
-                    /*
-                    // Memory
-                    case GetMapping ->
-                    case AllocateMemory ->
-                    case FreeMemory ->
-                     */
-                }
-                // TODO: Now that we have done the work asked of us, start some process then go to sleep.
-                // call start() on the next process to run, make sure kernel is running right now
-                // current process should not be changed, since we never call SwitchProcess
-                while (scheduler.currentRunning == null) {
-                    SwitchProcess();
-                }
-                System.out.println("currently Running Process is: " + scheduler.currentRunning.getName());
-                scheduler.currentRunning.start();
-                // Call stop() on myself(kernel), so that there is only one process is running
-                this.stop();
+                // Messages
+                case GetPIDByName -> OS.retVal = GetPidByName((String)OS.parameters.get(0));
+                case SendMessage -> SendMessage((KernelMessage) OS.parameters.get(0));
+                case WaitForMessage -> OS.retVal = WaitForMessage();
+                /*
+                // Memory
+                case GetMapping ->
+                case AllocateMemory ->
+                case FreeMemory ->
+                 */
             }
+            // TODO: Now that we have done the work asked of us, start some process then go to sleep.
+            // Ensure something is runnable before proceeding
+            while (scheduler.currentRunning == null) {
+                SwitchProcess();
+            }
+
+            // Start the chosen process
+            getCurrentRunning().start();
+
+            // Call stop() on myself(kernel), so that there is only one process is running
+            this.stop();
+        }
     }
 
     /**
-     * Invokes the scheduler to switch from the current process
-     * to the next runnable process.
+     * Performs a context switch using the scheduler.
+     * Selects and sets the next runnable process.
      * @return void
      */
     private void SwitchProcess() {
         scheduler.SwitchProcess();
     }
 
-    // For assignment 1, you can ignore the priority. We will use that in assignment 2
     /**
-     * Creates a new process, enqueues it in the scheduler, and returns its PID.
+     * Creates a new process and adds it to the scheduler.
      * @param up the userland process to create
-     * @param priority the priority level of the process
+     * @param priority the priority level (realtime, interactive, background)
      * @return int the PID of the created process
      */
     private int CreateProcess(UserlandProcess up, OS.PriorityType priority) {
         scheduler.CreateProcess(up, priority);
-        return scheduler.currentRunning.pid;
+        return getCurrentRunning().pid;
     }
 
     /**
-     * Returns the PCB of the currently running process.
+     * Gets the PCB (process control block) of the currently running process.
      * @return PCB the current running process
      */
     public PCB getCurrentRunning(){
@@ -98,9 +97,9 @@ public class Kernel extends Process implements Device  {
     }
 
     /**
-     * Puts the current process to sleep for the given time in milliseconds,
-     * then switches to another process.
-     * @param mills the sleep duration in milliseconds
+     * Puts the current process to sleep for a specified duration.
+     * Then triggers a context switch to another process.
+     * @param mills duration to sleep, in milliseconds
      * @return void
      */
     private void Sleep(int mills) {
@@ -109,7 +108,8 @@ public class Kernel extends Process implements Device  {
     }
 
     /**
-     * Terminates the current process and switches to the next runnable process.
+     * Terminates the current process and performs cleanup.
+     * Removes it from all scheduler queues and maps, and switches to another process.
      * @return void
      */
     private void Exit() {
@@ -123,16 +123,18 @@ public class Kernel extends Process implements Device  {
         // unscheduled the current process so that it never gets run again
         System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
         // clean Up the device
-        cleanUpDevice(scheduler.currentRunning);
+        cleanUpDevice(getCurrentRunning());
         // remove it from the hashmap in scheduler
         scheduler.removeCurrentProcessFromTheMap();
         // remove the queue message from the process list
         scheduler.clearMessageInQueue();
+        // remove the process from the waiting message map
+        scheduler.removeCurrentProcessFromWaitingProcessMap();
         // remove the process from the queue
         scheduler.currentRunning = null;
 
         //schedule should choose something else to run
-        OS.switchProcess();
+        SwitchProcess();
     }
 
     /**
@@ -140,64 +142,53 @@ public class Kernel extends Process implements Device  {
      * @return int the PID of the current process
      */
     private int GetPid() {
-        return scheduler.currentRunning.pid;
+        return getCurrentRunning().pid;
     }
 
-    /*
-    private int Open(String s) {
-        return 0;
-    }
-
-    private void Close(int id) {
-    }
-
-    private byte[] Read(int id, int size) {
-        return null; // change this
-    }
-
-    private void Seek(int id, int to) {
-    }
-
-    private int Write(int id, byte[] data) {
-        return 0; // change this
-    }
+    /**
+     * Sends a message from the current process to another process.
+     * Adds the message to the target process’s queue and requeues it if waiting.
+     * @param km the message to send
+     * @return void
      */
-
     private void SendMessage(KernelMessage km) {
         PCB p = getCurrentRunning();
         KernelMessage copyMessage = new KernelMessage(km);
-        // assigning sender pid
+        // copy message object
         copyMessage.senderPid = p.pid;
-        // look up the map, find the target PCB instance
+        // get the target Process instance
         PCB targetPCB = scheduler.processMap.get(copyMessage.targetPid);
-        // pre-check target PCB exist
+
+        // if target process are not in the process Map, throw it
         if (targetPCB == null) {
             throw new RuntimeException("Target PCB not found in scheduler");
         }
-        if (targetPCB.messageQueue == null) {
-            targetPCB.messageQueue = new java.util.LinkedList<>();
-        }
-        // add message object into the target PCB's message queue
+        // add message to the target process's message queue
         targetPCB.messageQueue.add(copyMessage);
         System.out.println("Sending Message From " + copyMessage.senderPid + " to " + targetPCB.pid);
 
         // if this PCB is waiting for a message (see below), restore it to its proper runnable queue
         if (scheduler.checkWaitingProcess(copyMessage.targetPid) != null) {
-            // remove it from the waiting PCB queue
             scheduler.removeWaitingProcess(copyMessage.targetPid);
-            // add it back to the priority queue
             scheduler.Requeue(targetPCB);
         }
+
         SwitchProcess();
     }
 
-    // current
+    /**
+     * Waits for a message in the current process’s inbox.
+     * If none exists, moves the process to the waiting map until a message arrives.
+     * @return KernelMessage the received message
+     */
     private KernelMessage WaitForMessage() {
-        PCB me = scheduler.currentRunning;
+        PCB me = getCurrentRunning();
+
         // fast path
         if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
             return me.messageQueue.remove();
         }
+
         // block until a message arrives
         while (true) {
             System.out.println("No Message, Gets Into Wating Queue");
@@ -207,17 +198,21 @@ public class Kernel extends Process implements Device  {
             System.out.println("END");
             scheduler.PrintQueues();
             // yield so someone else can run and deliver the message
-            OS.switchProcess();
+            SwitchProcess();
 
-            // when we're scheduled again, re-check our inbox
+            // when scheduled again, re-check our inbox
             me = getCurrentRunning();
             if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
                 return me.messageQueue.remove();
             }
-            // loop until a message is present
         }
     }
 
+    /**
+     * Looks up a process by its name.
+     * @param name the process name
+     * @return int the PID if found, or -1 if not found
+     */
     private int GetPidByName(String name) {
         for (PCB pcb : scheduler.processMap.values()) {
             if (pcb.getName().equals(name)) {
@@ -262,9 +257,9 @@ public class Kernel extends Process implements Device  {
      */
     @Override
     public int Open(String s) {
-        PCB currentProcess = getCurrentRunning();
-        for (int i = 0; i < currentProcess.vfsID.length; i++) {
-            if (currentProcess.vfsID[i] == -1){
+        PCB process = getCurrentRunning();
+        for (int i = 0; i < process.vfsID.length; i++) {
+            if (process.vfsID[i] == -1){
                 //Then call vfs.open. If the result is -1, fail.
                 int temp = vfs.Open(s);
                 if (temp == -1){
@@ -272,7 +267,7 @@ public class Kernel extends Process implements Device  {
                 }
                 // Otherwise, put the id from vfs into the PCB’s array and return that array index.
                 else{
-                    currentProcess.vfsID[i] = temp;
+                    process.vfsID[i] = temp;
                     return i;       // return index in process table
                 }
             }

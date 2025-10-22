@@ -51,7 +51,7 @@ public abstract class Process implements Runnable{
         semaphore.acquireUninterruptibly(); // block & waiting for permission
         main();                             // execute the userland process main()
         finsihed = true;                    // mark process as done
-        OS.switchProcess();                 // ask kernel to pick next process
+        //OS.switchProcess();                 // ask kernel to pick next process
     }
 
     /**

@@ -1,13 +1,16 @@
 import java.util.LinkedList;
 
 /**
- * PCB (Process Control Block).
- * Holds metadata and control for a single process:
- * - PID
- * - priority
- * - reference to the userland process
- * - sleep/wakeup time
- * - timeout information for demotion
+ * PCB (Process Control Block)
+ * ---------------------------
+ * Stores all metadata and control information about a process, including:
+ * - Process ID (PID)
+ * - Priority
+ * - Reference to the userland process object
+ * - Sleep/wakeup time
+ * - Timeout information (for demotion)
+ * - VFS handle table
+ * - Message queue for inter-process communication
  */
 public class PCB { // Process Control Block
     private static int nextPid = 1;
@@ -21,7 +24,14 @@ public class PCB { // Process Control Block
     public final String nameOfProcess;
     public LinkedList<KernelMessage> messageQueue = new LinkedList<>();
 
-    // Constructor assigns PID and stores priority/process reference
+    /**
+     * Constructor.
+     * Initializes a new process control block with a unique PID,
+     * its priority, and userland process reference.
+     * @param up the userland process this PCB represents
+     * @param priority the priority type of the process
+     * @return void
+     */
     PCB(UserlandProcess up, OS.PriorityType priority) {
         // assigning a new pid to a new process created
         this.pid = nextPid;
@@ -37,20 +47,31 @@ public class PCB { // Process Control Block
         }
     }
 
+    /**
+     * Returns the name of the userland process.
+     * @return String the process name
+     */
     public String getName() { return nameOfProcess; }
 
+    /**
+     * Returns the process priority.
+     * @return OS.PriorityType the priority type
+     */
     OS.PriorityType getPriority() {
         return priority;
     }
 
+    /**
+     * Requests the process to stop at the next safe checkpoint.
+     * @return void
+     */
     public void requestStop() {
         process.requestStop();
     }
 
     /**
-     * Stops the associated userland process.
-     * Calls its stop method and waits in a loop until
-     * the process confirms it has fully stopped.
+     * Stops the userland process completely.
+     * Waits in a loop until the process confirms it is stopped.
      * @return void
      */
     public void stop() {
@@ -65,15 +86,28 @@ public class PCB { // Process Control Block
         }
     }
 
+    /**
+     * Checks if the userland process has finished execution.
+     * @return boolean true if done, false otherwise
+     */
     public boolean isDone() { /* calls userlandprocess’ isDone() */
         return process.isDone();
     }
 
+    /**
+     * Starts the associated userland process.
+     * @return void
+     */
     void start() {
         // calls userlandprocess’ start()
         process.start();
     }
 
+    /**
+     * Changes the process’s priority level.
+     * @param newPriority the new priority type
+     * @return void
+     */
     public void setPriority(OS.PriorityType newPriority) {
         priority = newPriority;
     }

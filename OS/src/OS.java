@@ -1,6 +1,12 @@
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * OS class.
+ * The main interface between userland processes and the kernel.
+ * Provides system call wrappers that trigger kernel actions such as
+ * process creation, scheduling, message passing, and I/O operations.
+ */
 public class OS {
     private static Kernel ki; // The one and only one instance of the kernel.
 
@@ -11,6 +17,12 @@ public class OS {
         GetMapping, CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
     public static CallType currentCall;
 
+    /**
+     * Starts the kernel and handles process synchronization.
+     * If a process is currently running, it is stopped before the kernel runs.
+     * Otherwise, waits until the kernel sets a return value.
+     * @return void
+     */
     private static void startTheKernel() {
         // start the kernel
         // waiting in the semaphore queue until previous process release
