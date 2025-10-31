@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.LinkedList;
 
 /**
@@ -23,6 +24,7 @@ public class PCB { // Process Control Block
     public int [] vfsID = new int [10];         // Array of Virtual File System (VFS) handles associated with this process.
     public final String nameOfProcess;
     public LinkedList<KernelMessage> messageQueue = new LinkedList<>();
+    public int [] virtualMemoryMappingTable = new int [100];
 
     /**
      * Constructor.
@@ -42,9 +44,10 @@ public class PCB { // Process Control Block
         this.nameOfProcess = up.getClass().getSimpleName();
 
         // Initialize all VFS handles to -1 (unused)
-        for (int i = 0; i < vfsID.length; i++) {
-            vfsID[i] = -1;
-        }
+        Arrays.fill(vfsID, -1);
+
+        // Initialized TLB entries to -1
+        Arrays.fill(virtualMemoryMappingTable, -1);
     }
 
     /**

@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  * Kernel Class
@@ -222,6 +223,16 @@ public class Kernel extends Process implements Device  {
     }
 
     private void GetMapping(int virtualPage) {
+        PCB p = getCurrentRunning();
+        int physicalPage = p.virtualMemoryMappingTable[virtualPage];
+        if (physicalPage == -1) {
+            System.out.println("Segment Fault");
+            Exit();
+            return;
+        }
+        int num = new Random().nextInt(2);
+        Hardware.tlb[num][0] = virtualPage;
+        Hardware.tlb[num][1] = physicalPage;
     }
 
     private int AllocateMemory(int size) {

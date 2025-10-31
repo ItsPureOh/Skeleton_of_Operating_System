@@ -162,24 +162,37 @@ public class OS {
         parameters.add(name);
         currentCall = CallType.GetPIDByName;
         startTheKernel();
-        /*
-        while (retVal == null) {
-            Thread.yield();
-        }
-         */
         return (int)retVal;
     }
 
     // Memory
     public static void GetMapping(int virtualPage) {
+        parameters.clear();
+        parameters.add(virtualPage);
+        currentCall = CallType.GetMapping;
+        startTheKernel();
     }
 
     public static int AllocateMemory(int size ) {
-        return 0; // Change this
+        if (size % 1024 != 0){
+            throw new RuntimeException("AllocateMemory Error");
+        }
+        parameters.clear();
+        parameters.add(size);
+        currentCall = CallType.AllocateMemory;
+        startTheKernel();
+        return (int)retVal; // Change this
     }
 
     public static boolean FreeMemory(int pointer, int size) {
-        return false; // Change this
+        if (size % 1024 != 0 || pointer % 1024 != 0){
+            throw new RuntimeException("FreeMemory Error");
+        }
+        parameters.clear();
+        parameters.add(pointer);
+        parameters.add(size);
+        currentCall = CallType.FreeMemory;
+        startTheKernel();
+        return (boolean)retVal;
     }
-
 }
