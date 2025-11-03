@@ -3,8 +3,6 @@ public class Hardware {
     public static int[][] tlb = new int [2][2];
     private static byte[] memory = new byte[1048576];
 
-
-
     public static byte Read(int address){
         int virtualPageNumber = (address / 1024);
         // check whether virtual page number contained in TLB

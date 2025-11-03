@@ -13,6 +13,10 @@ public class Kernel extends Process implements Device  {
     private Scheduler scheduler = new Scheduler(this);
     // Simulated file system for I/O
     private VirtualFileSystem vfs = new VirtualFileSystem();
+    // keep tracking of the free memory
+    private boolean[] freePage = new boolean[1024];
+    // size of single page
+    final private int sizeOfPage = 1024;
 
     public Kernel() {
     }
@@ -236,10 +240,47 @@ public class Kernel extends Process implements Device  {
     }
 
     private int AllocateMemory(int size) {
-        return 0; // change this
+        // how many page do we need
+        int numberOfPages = size / sizeOfPage;
+        int emptyNumberOfSlots = 0;
+        PCB p = getCurrentRunning();
+        for (int i = 0; i < freePage.length; i++) {
+            // check for empty slot
+            if (!freePage[i]) {
+                emptyNumberOfSlots++;
+            }
+            else {
+                emptyNumberOfSlots = 0;
+            }
+            // if there is enough space for allocation
+            if (emptyNumberOfSlots == numberOfPages) {
+                // find the start index of the memory
+                int start = i - (numberOfPages - 1);
+                // mark the allocated space in used.
+                for (int j = start; j < start + numberOfPages; j++) {
+                    // mark page in used
+                    freePage[j] = true;
+                }
+                // return the beginning of this allocated memory block
+                return start * sizeOfPage;
+            }
+        }
+        // return -1 if there is no enough space for allocation
+        System.out.println("Allocated Memory Not Found");
+        return -1;
     }
 
     private boolean FreeMemory(int pointer, int size) {
+        // number of page needed free
+        int numberOfPages = size / sizeOfPage;
+        // beginning of the memory address (virtual)
+        int start = pointer / sizeOfPage;
+        // mark boolean array of page as free
+        for (int i = start; i < start + numberOfPages; i++) {
+            freePage[i] = false;
+        }
+
+
         return true;
     }
 

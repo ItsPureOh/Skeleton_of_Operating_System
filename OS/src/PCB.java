@@ -133,4 +133,20 @@ public class PCB { // Process Control Block
     public long getWakeupTime() {
         return wakeupTime;
     }
+
+    public int getAllocationIndexForVirtualMemory(int numberOfPage) {
+        int num = 0;
+        for (int i = 0; i < virtualMemoryMappingTable.length; i++) {
+            if (virtualMemoryMappingTable[i] == -1) {
+                num ++;
+            }
+            else{
+                num = 0;
+            }
+            if (num == numberOfPage) {
+                return i - (numberOfPage - 1);
+            }
+        }
+        return -1;
+    }
 }
