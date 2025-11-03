@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -52,12 +53,11 @@ public class Kernel extends Process implements Device  {
                 case GetPIDByName -> OS.retVal = GetPidByName((String)OS.parameters.get(0));
                 case SendMessage -> SendMessage((KernelMessage) OS.parameters.get(0));
                 case WaitForMessage -> OS.retVal = WaitForMessage();
-                /*
+
                 // Memory
-                case GetMapping ->
-                case AllocateMemory ->
-                case FreeMemory ->
-                 */
+                case GetMapping -> GetMapping((int)OS.parameters.get(0));
+                case AllocateMemory -> OS.retVal = AllocateMemory((int)OS.parameters.get(0));
+                case FreeMemory -> OS.retVal = FreeMemory((int)OS.parameters.get(0), (int)OS.parameters.get(1));
             }
             // TODO: Now that we have done the work asked of us, start some process then go to sleep.
             // Ensure something is runnable before proceeding
@@ -79,6 +79,7 @@ public class Kernel extends Process implements Device  {
      * @return void
      */
     private void SwitchProcess() {
+        clearTLB(Hardware.tlb);
         scheduler.SwitchProcess();
     }
 
@@ -136,6 +137,8 @@ public class Kernel extends Process implements Device  {
         scheduler.removeCurrentProcessFromWaitingProcessMap();
         // remove the process from the queue
         scheduler.currentRunning = null;
+        // free the memory
+        FreeAllMemory(getCurrentRunning());
 
         //schedule should choose something else to run
         SwitchProcess();
@@ -239,32 +242,34 @@ public class Kernel extends Process implements Device  {
         Hardware.tlb[num][1] = physicalPage;
     }
 
+    // find enough space in the paging table of the PCB class
     private int AllocateMemory(int size) {
         // how many page do we need
         int numberOfPages = size / sizeOfPage;
-        int emptyNumberOfSlots = 0;
         PCB p = getCurrentRunning();
-        for (int i = 0; i < freePage.length; i++) {
-            // check for empty slot
-            if (!freePage[i]) {
-                emptyNumberOfSlots++;
+        int result = 0;
+
+        // find the right hole in the virtual memory mapping table
+        // record the start of the virtual memory index in the array (virtualMemoryMappingTable)
+        int start = AllocateMemoryInVirtualPage(p, numberOfPages);
+        if (start == -1) {
+            return -1;
+        }
+        result = start;
+        int end = start + numberOfPages;
+        // Find any empty slot in the physical memory address (boolean array)
+        for (int i = 0; i < freePage.length; i++){
+            if (!freePage[i]){
+                // assigning the virtual memory index to that physical memory page (changing the boolean array value)
+                p.virtualMemoryMappingTable[start] = i;
+                freePage[i] = true;
+                start++;
             }
-            else {
-                emptyNumberOfSlots = 0;
-            }
-            // if there is enough space for allocation
-            if (emptyNumberOfSlots == numberOfPages) {
-                // find the start index of the memory
-                int start = i - (numberOfPages - 1);
-                // mark the allocated space in used.
-                for (int j = start; j < start + numberOfPages; j++) {
-                    // mark page in used
-                    freePage[j] = true;
-                }
-                // return the beginning of this allocated memory block
-                return start * sizeOfPage;
+            if (start == end){
+                return result;
             }
         }
+
         // return -1 if there is no enough space for allocation
         System.out.println("Allocated Memory Not Found");
         return -1;
@@ -275,16 +280,26 @@ public class Kernel extends Process implements Device  {
         int numberOfPages = size / sizeOfPage;
         // beginning of the memory address (virtual)
         int start = pointer / sizeOfPage;
-        // mark boolean array of page as free
-        for (int i = start; i < start + numberOfPages; i++) {
-            freePage[i] = false;
+        // get process
+        PCB p = getCurrentRunning();
+        //
+        int physicalPage;
+
+        // free the virtual table
+        // free the boolean array of physical memory address
+        for (int i = 0; i < numberOfPages; i++) {
+            physicalPage = p.virtualMemoryMappingTable[start + i];
+            p.virtualMemoryMappingTable[start + i] = -1;
+            freePage[physicalPage] = false;
         }
-
-
         return true;
     }
 
     private void FreeAllMemory(PCB currentlyRunning) {
+        if (currentlyRunning != null) {
+            Arrays.fill(currentlyRunning.virtualMemoryMappingTable, -1);
+            Arrays.fill(freePage, false);
+        }
     }
 
     /**
@@ -378,5 +393,29 @@ public class Kernel extends Process implements Device  {
             throw new IllegalArgumentException("Write index is negative");
         }
         return vfs.Write(getCurrentRunning().vfsID[id], data);
+    }
+
+    private int AllocateMemoryInVirtualPage(PCB currentlyRunning, int numberOfPages) {
+        int emptyPage = 0;
+        for (int i = 0; i < currentlyRunning.virtualMemoryMappingTable.length; i++) {
+            if (currentlyRunning.virtualMemoryMappingTable[i] == -1) {
+                emptyPage++;
+            }
+            else{
+                emptyPage = 0;
+            }
+            if (emptyPage == numberOfPages) {
+                return i - (numberOfPages - 1);
+            }
+        }
+        return -1;
+    }
+
+    private void clearTLB(int[][] tlb){
+        for (int i = 0; i < tlb.length; i++) {
+            for (int j = 0; j < tlb[i].length; j++) {
+                tlb[i][j] = 0;
+            }
+        }
     }
 }

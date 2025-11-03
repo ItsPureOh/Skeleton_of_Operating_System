@@ -37,6 +37,7 @@ public class Init extends UserlandProcess{
          */
 
 
+        /*
         //Test for Message Assignment
         // Ping - Pong Test
         OS.CreateProcess(new TestMessagePing(), OS.PriorityType.realtime);
@@ -48,13 +49,18 @@ public class Init extends UserlandProcess{
 
         OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
         OS.CreateProcess(new GoodbyeWorld(), OS.PriorityType.realtime);
+         */
+
+        //OS.CreateProcess(new TestWriteAndRead_Memory01(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestAllocateMemoryTwice_Memory_2(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestFreeAndReuseMemory_Memory3(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestWriteAndRead_Memory01(), OS.PriorityType.interactive);
 
         try {
             Thread.sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
         // Stoping the Init process
         OS.Exit();  // unscheduled Init, scheduler picks the next process
     }

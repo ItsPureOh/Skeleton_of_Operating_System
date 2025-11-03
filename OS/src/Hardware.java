@@ -10,11 +10,11 @@ public class Hardware {
         int virtualPageIndexInTLB = virtualPageInTLB(virtualPageNumber);
         // if tlb contained current virtual page number
         if (virtualPageIndexInTLB != -1){
-            int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, virtualPageNumber);
+            int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
             return memory[physicalAddress];
         }
         OS.GetMapping(address);
-        int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, virtualPageNumber);
+        int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
         return memory[physicalAddress];
     }
     public static void Write(int address, byte value){
@@ -23,7 +23,7 @@ public class Hardware {
         int virtualPageIndexInTLB = virtualPageInTLB(virtualPageNumber);
         // if tlb contained current virtual page number
         if (virtualPageIndexInTLB != -1){
-            int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, virtualPageNumber);
+            int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
             memory[physicalAddress] = value;
         }
     }
@@ -37,8 +37,8 @@ public class Hardware {
         return -1;
     }
 
-    private static int getPhysicalMemoryAddress(int virtualPageIndexInTLB, int virtualPageNumber){
-        int offset = virtualPageNumber % 1024;
+    private static int getPhysicalMemoryAddress(int virtualPageIndexInTLB, int address){
+        int offset = address % 1024;
         int physicalPageNumber = tlb[virtualPageIndexInTLB][1];
         return 1024 * physicalPageNumber + offset;
     }
