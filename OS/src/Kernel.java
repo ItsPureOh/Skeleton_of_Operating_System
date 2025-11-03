@@ -13,7 +13,7 @@ public class Kernel extends Process implements Device  {
     private Scheduler scheduler = new Scheduler(this);
     // Simulated file system for I/O
     private VirtualFileSystem vfs = new VirtualFileSystem();
-    // keep tracking of the free memory
+    // keep tracking of the free memory (physical)
     private boolean[] freePage = new boolean[1024];
     // size of single page
     final private int sizeOfPage = 1024;

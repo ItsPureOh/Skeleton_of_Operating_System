@@ -1,6 +1,7 @@
 public class Hardware {
     // [virtual page, physical page]
     public static int[][] tlb = new int [2][2];
+    // physical
     private static byte[] memory = new byte[1048576];
 
     public static byte Read(int address){
