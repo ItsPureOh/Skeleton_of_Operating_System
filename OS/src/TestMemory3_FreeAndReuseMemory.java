@@ -1,4 +1,4 @@
-public class TestFreeAndReuseMemory_Memory3 extends UserlandProcess{
+public class TestMemory3_FreeAndReuseMemory extends UserlandProcess{
 
     @Override
     public void main() {

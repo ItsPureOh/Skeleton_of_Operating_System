@@ -1,4 +1,4 @@
-public class TestWriteAndRead_Memory01 extends UserlandProcess{
+public class TestMemory1_WriteAndRead extends UserlandProcess{
 
     @Override
     public void main() {

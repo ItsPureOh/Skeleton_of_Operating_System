@@ -266,7 +266,7 @@ public class Kernel extends Process implements Device  {
                 start++;
             }
             if (start == end){
-                return result;
+                return result * sizeOfPage;
             }
         }
 

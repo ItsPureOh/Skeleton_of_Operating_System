@@ -13,7 +13,8 @@ public class Hardware {
             int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
             return memory[physicalAddress];
         }
-        OS.GetMapping(address);
+        OS.GetMapping(virtualPageNumber);
+        virtualPageIndexInTLB = virtualPageInTLB(virtualPageNumber);
         int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
         return memory[physicalAddress];
     }
@@ -22,10 +23,13 @@ public class Hardware {
         // check whether virtual page number contained in TLB
         int virtualPageIndexInTLB = virtualPageInTLB(virtualPageNumber);
         // if tlb contained current virtual page number
-        if (virtualPageIndexInTLB != -1){
-            int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
-            memory[physicalAddress] = value;
+        if (virtualPageIndexInTLB == -1){
+            // updating the TLB
+            OS.GetMapping(virtualPageNumber);
+            virtualPageIndexInTLB = virtualPageInTLB(virtualPageNumber);
         }
+        int physicalAddress = getPhysicalMemoryAddress(virtualPageIndexInTLB, address);
+        memory[physicalAddress] = value;
     }
 
     private static int virtualPageInTLB(int virtualPageNumber){

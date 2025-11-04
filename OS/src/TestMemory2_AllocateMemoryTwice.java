@@ -1,4 +1,4 @@
-public class TestAllocateMemoryTwice_Memory_2 extends UserlandProcess {
+public class TestMemory2_AllocateMemoryTwice extends UserlandProcess {
 
     @Override
     public void main() {
@@ -19,6 +19,7 @@ public class TestAllocateMemoryTwice_Memory_2 extends UserlandProcess {
             System.out.println("✅ Passed: Memory isolated correctly.");
         else
             System.out.println("❌ Failed: Memory overlap or mapping error.");
+
         OS.Exit();
     }
 }

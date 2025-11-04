@@ -51,10 +51,16 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new GoodbyeWorld(), OS.PriorityType.realtime);
          */
 
-        //OS.CreateProcess(new TestWriteAndRead_Memory01(), OS.PriorityType.interactive);
-        OS.CreateProcess(new TestAllocateMemoryTwice_Memory_2(), OS.PriorityType.interactive);
-        OS.CreateProcess(new TestFreeAndReuseMemory_Memory3(), OS.PriorityType.interactive);
-        OS.CreateProcess(new TestWriteAndRead_Memory01(), OS.PriorityType.interactive);
+        /*
+        OS.CreateProcess(new TestMemory1_WriteAndRead(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestMemory2_AllocateMemoryTwice(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestMemory3_FreeAndReuseMemory(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestMemory4_MemoryIsolation_ProcessA(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestMemory4_MemoryIsolation_ProcessB(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestMemory5_VirtualPaging(), OS.PriorityType.interactive);
+
+         */
+        OS.CreateProcess(new TestMemory6_VirtualHoleReuse(), OS.PriorityType.interactive);
 
         try {
             Thread.sleep(50);
