@@ -1,5 +1,3 @@
-import java.sql.SQLOutput;
-import java.time.Clock;
 import java.util.*;
 
 /**
@@ -10,23 +8,35 @@ import java.util.*;
  * Handles switching, demotion, sleeping, and probabilistic scheduling.
  */
 public class Scheduler {
-    private Timer timer = new Timer(true);          // Timer simulates the hardware timer chip. It fires regularly to expire quantums.
-    public PCB currentRunning;                               // Reference to the process that is currently running.
-    Random rand = new Random();
-    //final private LinkedList<PCB> sleepingQueue = new LinkedList<>(); // new list for sleeping processes
+    // Hardware timer simulation used to trigger periodic interrupts.
+    // The timer fires at regular intervals to signal quantum expiration.
+    private Timer timer = new Timer(true);
+
+    // Reference to the process currently executing on the CPU.
+    public PCB currentRunning;
+
+    // Random generator used for scheduling or test operations (e.g., randomized replacement).
+    private final Random rand = new Random();
+
+    // Priority queue that holds sleeping processes, ordered by their wake-up time.
+    // The process with the earliest wake-up time is placed at the head of the queue.
     private final PriorityQueue<PCB> sleepingQueue = new PriorityQueue<>(Comparator.comparingLong(pcb -> pcb.wakeupTime));
-    // priority queue list
-    final private LinkedList<PCB> realtimeProcess = new LinkedList<>();
-    final private LinkedList<PCB> interactiveProcess = new LinkedList<>();
-    final private LinkedList<PCB> backgroundProcess = new LinkedList<>();
 
-    // waiting message queue list
-    final private HashMap<Integer, PCB> waitingProcess = new HashMap<>();
+    // Process queues by priority level.
+    // Each queue represents a scheduling category.
+    private final LinkedList<PCB> realtimeProcess = new LinkedList<>();     // Highest-priority tasks
+    private final LinkedList<PCB> interactiveProcess = new LinkedList<>();  // User-facing or interactive tasks
+    private final LinkedList<PCB> backgroundProcess = new LinkedList<>();   // Low-priority or background tasks
 
-    //kernel ref.
+    // Map of processes that are currently waiting for messages or synchronization events.
+    // The key is the PID of the waiting process, and the value is its PCB.
+    private final HashMap<Integer, PCB> waitingProcess = new HashMap<>();
+
+    // Reference to the main Kernel instance, allowing access to kernel-level operations.
     private final Kernel ki;
 
-    // hashMap that contains process table with PID
+    // Process table mapping process IDs (PID) to their corresponding PCBs.
+    // Used for process lookup, management, and scheduling.
     public HashMap<Integer, PCB> processMap = new HashMap<>();
 
     /**
@@ -203,7 +213,7 @@ public class Scheduler {
         }
         if (currentRunningProcess.isDone()){
             // clean up the space if process is finished
-            ki.cleanUpDevice(currentRunningProcess);
+            ki.CleanUpDevice(currentRunningProcess);
             // remove that process from the map
             processMap.remove(currentRunningProcess.pid);
             return;
@@ -313,18 +323,7 @@ public class Scheduler {
         else if (!backgroundProcess.isEmpty()) {
             next = backgroundProcess.removeFirst();
         }
-        /*
-        else {
-            // Debug
-            System.out.println("Error, No Process Exists");
-            System.exit(0);
-        }
-         */
         return next;
-    }
-
-    public PCB getCurrentRunningProcess(){
-        return currentRunning;
     }
 
     public int getPid(PCB currentRunningProcess){
@@ -359,38 +358,70 @@ public class Scheduler {
         System.out.println("\n");
     }
 
-    public void removeCurrentProcessFromTheMap(){
+    /**
+     * Removes the currently running process from the global process map.
+     * This is typically called when a process terminates or is being replaced.
+     */
+    public void RemoveCurrentProcessFromTheMap(){
         processMap.remove(currentRunning.pid);
     }
 
-    public void putCurrentProcessInTheWaitingMap(){
+    /**
+     * Moves the currently running process into the waiting process map.
+     * Marks the process as stopped so that it no longer executes until
+     * the condition it is waiting for is satisfied.
+     */
+    public void PutCurrentProcessInTheWaitingMap(){
         currentRunning.requestStop();
         waitingProcess.put(currentRunning.pid, currentRunning);
 
     }
 
-    public PCB checkWaitingProcess(int pid){
+    /**
+     * Checks whether a process with the specified PID exists in the waiting map.
+     *
+     * @param pid the process ID to check
+     * @return the PCB if the process is waiting; null otherwise
+     */
+    public PCB CheckWaitingProcess(int pid){
         if (waitingProcess.containsKey(pid)){
             return waitingProcess.get(pid);
         }
         return null;
     }
 
-    public PCB removeWaitingProcess(int pid){
+    /**
+     * Removes a process with the specified PID from the waiting map and returns it.
+     * Used when the process’s waiting condition is fulfilled.
+     *
+     * @param pid the process ID to remove
+     * @return the removed PCB if found; null otherwise
+     */
+    public PCB RemoveWaitingProcess(int pid){
         if (waitingProcess.containsKey(pid)){
             return waitingProcess.remove(pid);
         }
         return null;
     }
 
-    public void clearMessageInQueue(){
+    /**
+     * Clears all pending messages in the currently running process’s message queue.
+     * Prevents message buildup when the process is being reset or terminated.
+     */
+    public void ClearMessageInQueue(){
         if (currentRunning.messageQueue == null){
             return;
         }
         currentRunning.messageQueue.clear();
     }
 
-    public void removeFromPriorityQueue(PCB process){
+    /**
+     * Removes the specified process from all scheduling queues it may belong to,
+     * including realtime, interactive, background, and sleeping queues.
+     *
+     * @param process the process to remove from the queues
+     */
+    public void RemoveFromPriorityQueue(PCB process){
         if (process.getPriority() == OS.PriorityType.realtime){
             realtimeProcess.remove(process);
         }
@@ -403,7 +434,11 @@ public class Scheduler {
         sleepingQueue.remove(process);
     }
 
-    public void removeCurrentProcessFromWaitingProcessMap(){
+    /**
+     * Removes the currently running process from the waiting process map.
+     * This is typically called when the process resumes execution after waiting.
+     */
+    public void RemoveCurrentProcessFromWaitingProcessMap(){
         waitingProcess.remove(currentRunning.pid);
     }
 

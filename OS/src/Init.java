@@ -38,8 +38,8 @@ public class Init extends UserlandProcess{
 
 
         /*
-        //Test for Message Assignment
-        // Ping - Pong Test
+        // Test for Message Assignment
+        // Ping-Pong Test
         OS.CreateProcess(new TestMessagePing(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMessagePong(), OS.PriorityType.realtime);
         // Network - like Test
@@ -51,16 +51,14 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new GoodbyeWorld(), OS.PriorityType.realtime);
          */
 
-        /*
+
+        // Test for Memory Assignment
         OS.CreateProcess(new TestMemory1_WriteAndRead(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory2_AllocateMemoryTwice(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory3_FreeAndReuseMemory(), OS.PriorityType.interactive);
-        OS.CreateProcess(new TestMemory4_MemoryIsolation_ProcessA(), OS.PriorityType.interactive);
-        OS.CreateProcess(new TestMemory4_MemoryIsolation_ProcessB(), OS.PriorityType.interactive);
+        OS.CreateProcess(new TestMemory4_VirtualHoleReuse(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory5_VirtualPaging(), OS.PriorityType.interactive);
 
-         */
-        OS.CreateProcess(new TestMemory6_VirtualHoleReuse(), OS.PriorityType.interactive);
 
         try {
             Thread.sleep(50);

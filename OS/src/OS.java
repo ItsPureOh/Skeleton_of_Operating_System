@@ -8,14 +8,21 @@ import java.util.List;
  * process creation, scheduling, message passing, and I/O operations.
  */
 public class OS {
+    // The single global instance of the Kernel (singleton pattern)
     private static Kernel ki; // The one and only one instance of the kernel.
 
+    // List of parameters passed to the current system call
     public static List<Object> parameters = new ArrayList<>();
+
+    // Return value produced by the most recent system call
     public static Object retVal;
+
+    // The type of system call currently being executed
+    public static CallType currentCall;
 
     public enum CallType {SwitchProcess,SendMessage, Open, Close, Read, Seek, Write,
         GetMapping, CreateProcess, Sleep, GetPID, AllocateMemory, FreeMemory, GetPIDByName, WaitForMessage, Exit}
-    public static CallType currentCall;
+
 
     /**
      * Starts the kernel and handles process synchronization.
@@ -24,21 +31,16 @@ public class OS {
      * @return void
      */
     private static void startTheKernel() {
-        // start the kernel
-        // waiting in the semaphore queue until previous process release
-
-
-        //if the scheduler (you might need an accessor here) has a currentRunning, call stop() on it.
-        // start up phase: cur == null
-        PCB cur = ki.getCurrentRunning();
-
-        // start the kernel
-        // waiting in the semaphore queue until previous process release
         ki.start();
+
+        // start up phase: cur == null
+        PCB cur = ki.GetCurrentRunningProcess();
+
         // if currently running a process, call stop on it in order to run the kernel
         if (cur != null) {
             cur.stop();
         }
+
         /*
         If there is no current process running, create a loop in OS that calls Thread.sleep(10)
             until the return value is set by the kernel.
@@ -57,7 +59,7 @@ public class OS {
 
     public enum PriorityType {realtime, interactive, background}
 
-    public static void switchProcess() {
+    public static void SwitchProcess() {
         parameters.clear();
         currentCall = CallType.SwitchProcess;
         startTheKernel();
@@ -69,8 +71,6 @@ public class OS {
         CreateProcess(new IdleProcess(), PriorityType.background);
     }
 
-    // For assignment 1, you can ignore the priority. We will use that in assignment 2
-    // this is the function that User Mode Calling to create a new process
     public static int CreateProcess(UserlandProcess up, PriorityType priority) {
         parameters.clear();
         parameters.add(up);

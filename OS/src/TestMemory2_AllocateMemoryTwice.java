@@ -1,3 +1,13 @@
+/**
+ * TestMemory2_AllocateMemoryTwice
+ *
+ * This test verifies that multiple memory allocations work correctly and
+ * that different memory regions are properly isolated from each other.
+ *
+ * It allocates two separate memory blocks, writes distinct values into each,
+ * and then reads them back to confirm that there is no overlap or corruption
+ * between the two allocated regions.
+ */
 public class TestMemory2_AllocateMemoryTwice extends UserlandProcess {
 
     @Override
@@ -16,9 +26,9 @@ public class TestMemory2_AllocateMemoryTwice extends UserlandProcess {
         System.out.println("Value at addr2: " + v2);
 
         if (v1 == 10 && v2 == 20)
-            System.out.println("✅ Passed: Memory isolated correctly.");
+            System.out.println("Passed: Memory isolated correctly.");
         else
-            System.out.println("❌ Failed: Memory overlap or mapping error.");
+            System.out.println("Failed: Memory overlap or mapping error.");
 
         OS.Exit();
     }

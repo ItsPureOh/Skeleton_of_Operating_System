@@ -18,11 +18,20 @@
  *
  */
 public class VirtualFileSystem implements Device{
-    private final int MaximumFiles = 10;                    // Maximum number of files/devices that can be opened simultaneously
-    private Device[] devices = new Device[MaximumFiles];    // References to the actual device instances currently in use.
-    private int[] deviceId = new int[MaximumFiles];         // Maps VFS slot IDs to device-specific internal IDs.
-    private RandomDevice fileRandom = new RandomDevice();   // Random device handler for "random" type devices.
-    private FakeFileSystem fileFake = new FakeFileSystem(); // Fake file system handler for "file" type devices.
+    // Maximum number of files/devices that can be opened simultaneously
+    private final int MaximumFiles = 10;
+
+    // References to the actual device instances currently in use.
+    private Device[] devices = new Device[MaximumFiles];
+
+    // Maps VFS slot IDs to device-specific internal IDs.
+    private int[] deviceId = new int[MaximumFiles];
+
+    // Random device handler for "random" type devices.
+    private RandomDevice fileRandom = new RandomDevice();
+
+    // Fake file system handler for "file" type devices.
+    private FakeFileSystem fileFake = new FakeFileSystem();
 
     /**
      * Opens a device or file through the virtual file system.

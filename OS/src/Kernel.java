@@ -1,5 +1,4 @@
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -10,13 +9,16 @@ import java.util.Random;
  * Works closely with the Scheduler and Virtual File System (VFS).
  */
 public class Kernel extends Process implements Device  {
-    // Handles process queues & context switching
+    // Manages process queues and performs context switching between processes
     private Scheduler scheduler = new Scheduler(this);
-    // Simulated file system for I/O
+
+    // Simulated virtual file system used for handling file I/O operations
     private VirtualFileSystem vfs = new VirtualFileSystem();
-    // keep tracking of the free memory (physical)
+
+    // Tracks the allocation status of physical memory page, true = allocated, false = free
     private boolean[] freePage = new boolean[1024];
-    // size of single page
+
+    // Defines the size (in bytes) of a single memory page
     final private int sizeOfPage = 1024;
 
     public Kernel() {
@@ -66,7 +68,7 @@ public class Kernel extends Process implements Device  {
             }
 
             // Start the chosen process
-            getCurrentRunning().start();
+            GetCurrentRunningProcess().start();
 
             // Call stop() on myself(kernel), so that there is only one process is running
             this.stop();
@@ -79,7 +81,7 @@ public class Kernel extends Process implements Device  {
      * @return void
      */
     private void SwitchProcess() {
-        clearTLB(Hardware.tlb);
+        ClearTLB(Hardware.tlb);
         scheduler.SwitchProcess();
     }
 
@@ -97,7 +99,7 @@ public class Kernel extends Process implements Device  {
      * Gets the PCB (process control block) of the currently running process.
      * @return PCB the current running process
      */
-    public PCB getCurrentRunning(){
+    public PCB GetCurrentRunningProcess(){
         return scheduler.currentRunning;
     }
 
@@ -128,17 +130,17 @@ public class Kernel extends Process implements Device  {
         // unscheduled the current process so that it never gets run again
         System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
         // clean Up the device
-        cleanUpDevice(getCurrentRunning());
+        CleanUpDevice(GetCurrentRunningProcess());
         // remove it from the hashmap in scheduler
-        scheduler.removeCurrentProcessFromTheMap();
+        scheduler.RemoveCurrentProcessFromTheMap();
         // remove the queue message from the process list
-        scheduler.clearMessageInQueue();
+        scheduler.ClearMessageInQueue();
         // remove the process from the waiting message map
-        scheduler.removeCurrentProcessFromWaitingProcessMap();
+        scheduler.RemoveCurrentProcessFromWaitingProcessMap();
         // remove the process from the queue
         scheduler.currentRunning = null;
         // free the memory
-        FreeAllMemory(getCurrentRunning());
+        FreeAllMemory(GetCurrentRunningProcess());
 
         //schedule should choose something else to run
         SwitchProcess();
@@ -149,7 +151,7 @@ public class Kernel extends Process implements Device  {
      * @return int the PID of the current process
      */
     private int GetPid() {
-        return getCurrentRunning().pid;
+        return GetCurrentRunningProcess().pid;
     }
 
     /**
@@ -159,7 +161,7 @@ public class Kernel extends Process implements Device  {
      * @return void
      */
     private void SendMessage(KernelMessage km) {
-        PCB p = getCurrentRunning();
+        PCB p = GetCurrentRunningProcess();
         KernelMessage copyMessage = new KernelMessage(km);
         // copy message object
         copyMessage.senderPid = p.pid;
@@ -175,8 +177,8 @@ public class Kernel extends Process implements Device  {
         System.out.println("Sending Message From " + copyMessage.senderPid + " to " + targetPCB.pid);
 
         // if this PCB is waiting for a message (see below), restore it to its proper runnable queue
-        if (scheduler.checkWaitingProcess(copyMessage.targetPid) != null) {
-            scheduler.removeWaitingProcess(copyMessage.targetPid);
+        if (scheduler.CheckWaitingProcess(copyMessage.targetPid) != null) {
+            scheduler.RemoveWaitingProcess(copyMessage.targetPid);
             scheduler.Requeue(targetPCB);
         }
 
@@ -189,7 +191,7 @@ public class Kernel extends Process implements Device  {
      * @return KernelMessage the received message
      */
     private KernelMessage WaitForMessage() {
-        PCB me = getCurrentRunning();
+        PCB me = GetCurrentRunningProcess();
 
         // fast path
         if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
@@ -200,15 +202,15 @@ public class Kernel extends Process implements Device  {
         while (true) {
             System.out.println("No Message, Gets Into Wating Queue");
             // mark as waiting and ensure it's NOT in a ready queue
-            scheduler.putCurrentProcessInTheWaitingMap();
-            scheduler.removeFromPriorityQueue(me);
+            scheduler.PutCurrentProcessInTheWaitingMap();
+            scheduler.RemoveFromPriorityQueue(me);
             System.out.println("END");
             scheduler.PrintQueues();
             // yield so someone else can run and deliver the message
             SwitchProcess();
 
             // when scheduled again, re-check our inbox
-            me = getCurrentRunning();
+            me = GetCurrentRunningProcess();
             if (me.messageQueue != null && !me.messageQueue.isEmpty()) {
                 return me.messageQueue.remove();
             }
@@ -229,8 +231,21 @@ public class Kernel extends Process implements Device  {
         return -1;
     }
 
+    /**
+     * Handles a TLB miss by retrieving the mapping between a virtual page
+     * and its corresponding physical page from the current process's
+     * page table (virtualMemoryMappingTable).
+     *
+     * If the requested virtual page is invalid (unmapped), this function
+     * reports a segmentation fault and terminates the process.
+     *
+     * Once a valid mapping is found, a random TLB slot is chosen and updated
+     * with the new virtual-to-physical page mapping.
+     *
+     * @param virtualPage the virtual page number that caused the TLB miss
+     */
     private void GetMapping(int virtualPage) {
-        PCB p = getCurrentRunning();
+        PCB p = GetCurrentRunningProcess();
         int physicalPage = p.virtualMemoryMappingTable[virtualPage];
         if (physicalPage == -1) {
             System.out.println("Segment Fault");
@@ -242,22 +257,36 @@ public class Kernel extends Process implements Device  {
         Hardware.tlb[num][1] = physicalPage;
     }
 
-    // find enough space in the paging table of the PCB class
+    /**
+     * Allocates a block of virtual memory for the currently running process.
+     * Determines how many pages are required, finds a suitable range of
+     * consecutive virtual pages, and maps them to available physical pages.
+     *
+     * The function updates both the process's virtual memory mapping table
+     * and the global physical page tracking array.
+     *
+     * @param size the requested allocation size in bytes
+     * @return the starting virtual address of the allocated block,
+     *         or -1 if allocation fails
+     */
     private int AllocateMemory(int size) {
-        // how many page do we need
         int numberOfPages = size / sizeOfPage;
-        PCB p = getCurrentRunning();
-        int result = 0;
+        int result, end;
+        PCB p = GetCurrentRunningProcess();
+
+        // terminate if physical page not enough
+        if (AvailablePhysicalPages(freePage) < numberOfPages) {
+            throw new RuntimeException("Free physical page is too small");
+        }
 
         // find the right hole in the virtual memory mapping table
         // record the start of the virtual memory index in the array (virtualMemoryMappingTable)
         int start = AllocateMemoryInVirtualPage(p, numberOfPages);
-        if (start == -1) {
-            return -1;
-        }
+        if (start == -1) {return -1;}
+
         result = start;
-        int end = start + numberOfPages;
-        // Find any empty slot in the physical memory address (boolean array)
+        end = start + numberOfPages;
+
         for (int i = 0; i < freePage.length; i++){
             if (!freePage[i]){
                 // assigning the virtual memory index to that physical memory page (changing the boolean array value)
@@ -265,23 +294,33 @@ public class Kernel extends Process implements Device  {
                 freePage[i] = true;
                 start++;
             }
+
+            // if all virtual page assigned a physical page
             if (start == end){
                 return result * sizeOfPage;
             }
         }
 
-        // return -1 if there is no enough space for allocation
         System.out.println("Allocated Memory Not Found");
         return -1;
     }
 
+    /**
+     * Frees a block of memory previously allocated to the current process.
+     * Releases both the virtual-to-physical mappings in the process's page table
+     * and the corresponding physical pages in the system.
+     *
+     * @param pointer the starting virtual address of the block to free
+     * @param size    the size of the block to free in bytes
+     * @return true if the operation completes successfully
+     */
     private boolean FreeMemory(int pointer, int size) {
         // number of page needed free
         int numberOfPages = size / sizeOfPage;
         // beginning of the memory address (virtual)
         int start = pointer / sizeOfPage;
         // get process
-        PCB p = getCurrentRunning();
+        PCB p = GetCurrentRunningProcess();
         //
         int physicalPage;
 
@@ -295,6 +334,13 @@ public class Kernel extends Process implements Device  {
         return true;
     }
 
+    /**
+     * Frees all memory associated with the given process.
+     * Resets both the process's virtual memory mapping table and the global
+     * physical memory tracking array, effectively releasing all memory pages.
+     *
+     * @param currentlyRunning the PCB of the process whose memory should be freed
+     */
     private void FreeAllMemory(PCB currentlyRunning) {
         if (currentlyRunning != null) {
             Arrays.fill(currentlyRunning.virtualMemoryMappingTable, -1);
@@ -306,7 +352,7 @@ public class Kernel extends Process implements Device  {
      * Cleans up all open device handles for a given process.
      * @param process the process to clean up
      */
-    public void cleanUpDevice(PCB process){
+    public void CleanUpDevice(PCB process){
         for (int i = 0; i < process.vfsID.length; i++){
             // if slot is not empty
             if(process.vfsID[i] != -1){
@@ -323,7 +369,7 @@ public class Kernel extends Process implements Device  {
      */
     @Override
     public int Open(String s) {
-        PCB process = getCurrentRunning();
+        PCB process = GetCurrentRunningProcess();
         for (int i = 0; i < process.vfsID.length; i++) {
             if (process.vfsID[i] == -1){
                 //Then call vfs.open. If the result is -1, fail.
@@ -350,8 +396,8 @@ public class Kernel extends Process implements Device  {
         if (id < 0){
             throw new IllegalArgumentException("Close index is negative");
         }
-        vfs.Close(getCurrentRunning().vfsID[id]);
-        getCurrentRunning().vfsID[id] = -1;
+        vfs.Close(GetCurrentRunningProcess().vfsID[id]);
+        GetCurrentRunningProcess().vfsID[id] = -1;
     }
 
     /**
@@ -365,7 +411,7 @@ public class Kernel extends Process implements Device  {
         if (id < 0){
             throw new IllegalArgumentException("Read index is negative");
         }
-        return vfs.Read(getCurrentRunning().vfsID[id], size);
+        return vfs.Read(GetCurrentRunningProcess().vfsID[id], size);
     }
 
     /**
@@ -378,7 +424,7 @@ public class Kernel extends Process implements Device  {
         if (id < 0){
             throw new IllegalArgumentException("Seek index is negative");
         }
-        vfs.Seek(getCurrentRunning().vfsID[id], to);
+        vfs.Seek(GetCurrentRunningProcess().vfsID[id], to);
     }
 
     /**
@@ -392,9 +438,21 @@ public class Kernel extends Process implements Device  {
         if (id < 0){
             throw new IllegalArgumentException("Write index is negative");
         }
-        return vfs.Write(getCurrentRunning().vfsID[id], data);
+        return vfs.Write(GetCurrentRunningProcess().vfsID[id], data);
     }
 
+    /**
+     * Finds a contiguous sequence of empty virtual pages in the given process's
+     * virtual memory mapping table that is large enough to satisfy a memory allocation request.
+     *
+     * The function scans the process's page table, counting consecutive entries
+     * that are marked as -1 (indicating unused pages). Once the required number
+     * of pages is found, it returns the starting index of that range.
+     *
+     * @param currentlyRunning the PCB of the process requesting memory
+     * @param numberOfPages the number of contiguous virtual pages needed
+     * @return the starting index of the free range, or -1 if no suitable range exists
+     */
     private int AllocateMemoryInVirtualPage(PCB currentlyRunning, int numberOfPages) {
         int emptyPage = 0;
         for (int i = 0; i < currentlyRunning.virtualMemoryMappingTable.length; i++) {
@@ -411,11 +469,36 @@ public class Kernel extends Process implements Device  {
         return -1;
     }
 
-    private void clearTLB(int[][] tlb){
+    /**
+     * Clears all entries in the provided TLB array by setting
+     * every value to zero.
+     *
+     * This is typically used during system initialization or
+     * when switching between processes to prevent stale address mappings.
+     *
+     * @param tlb the Translation Lookaside Buffer to clear
+     */
+    private void ClearTLB(int[][] tlb){
         for (int i = 0; i < tlb.length; i++) {
             for (int j = 0; j < tlb[i].length; j++) {
                 tlb[i][j] = 0;
             }
         }
+    }
+
+    /**
+     * Counts the number of available (unused) physical pages in the system.
+     * Each entry in the freePage array represents one physical page, where
+     * false means the page is free and true means it is currently allocated.
+     *
+     * @param freePage the boolean array tracking physical page availability
+     * @return the total number of free physical pages
+     */
+    public int AvailablePhysicalPages(boolean[] freePage) {
+        int count = 0;
+        for (boolean b : freePage) {
+            if (!b) count++;
+        }
+        return count;
     }
 }

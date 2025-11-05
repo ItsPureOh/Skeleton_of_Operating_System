@@ -51,7 +51,6 @@ public abstract class Process implements Runnable{
         semaphore.acquireUninterruptibly(); // block & waiting for permission
         main();                             // execute the userland process main()
         finsihed = true;                    // mark process as done
-        //OS.switchProcess();                 // ask kernel to pick next process
     }
 
     /**
@@ -62,7 +61,7 @@ public abstract class Process implements Runnable{
     public void cooperate() {
         if (this.quantumExpired) {
             this.quantumExpired = false;
-            OS.switchProcess();
+            OS.SwitchProcess();
         }
     }
 }
