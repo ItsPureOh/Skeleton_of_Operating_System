@@ -49,7 +49,8 @@ public class PCB { // Process Control Block
     // Virtual memory mapping table for this process
     // Each index represents a virtual page number, and the value is the corresponding physical page number
     // A value of -1 indicates that the virtual page is not currently mapped
-    public int[] virtualMemoryMappingTable = new int[100];
+    //public int[] virtualMemoryMappingTable = new int[100];
+    public VirtualToPhysicalMapping[] virtualMemoryMappingTable;
 
     /**
      * Constructor.
@@ -67,6 +68,7 @@ public class PCB { // Process Control Block
         this.priority = priority;
         this.nameOfProcess = up.getClass().getSimpleName();
         Arrays.fill(vfsID, -1);                             // Initialize all VFS handles to -1 (unused)
+        virtualMemoryMappingTable = new VirtualToPhysicalMapping[100];
         Arrays.fill(virtualMemoryMappingTable, -1);         // Initialized TLB entries to -1
     }
 

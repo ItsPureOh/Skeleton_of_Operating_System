@@ -14,7 +14,9 @@ public class Hardware {
     public static int[][] tlb = new int [2][2];
 
     // Simulated physical memory of 1 MB (1,048,576 bytes).
-    private static byte[] memory = new byte[1048576];
+    public static byte[] memory = new byte[1048576];
+
+    public static final int sizeOfPage = 1024;
 
     /**
      * Reads a single byte from the given virtual address.
@@ -105,5 +107,18 @@ public class Hardware {
                     i, tlb[i][0], tlb[i][1]);
         }
         System.out.println("=================\n");
+    }
+
+    public static byte[] ReadPhysicalMemory(int physicalPage){
+        int start = physicalPage * sizeOfPage;
+        int end = start + sizeOfPage;
+        byte[] result = new byte[sizeOfPage];
+        System.arraycopy(memory, start, result, 0, result.length);
+        return result;
+    }
+
+    public static void WritePhysicalMemory(int physicalPage, byte[] value){
+        int start = physicalPage * sizeOfPage;
+        System.arraycopy(value, 0, memory, start, value.length);
     }
 }

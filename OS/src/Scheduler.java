@@ -442,4 +442,39 @@ public class Scheduler {
         waitingProcess.remove(currentRunning.pid);
     }
 
+    public PCB GetRandomProcesss(){
+        // get total number of processes
+        int size = processMap.size();
+        PCB randomPCB;
+
+        // check if victim process has physical memory
+        do{
+            int randomIndex = new Random().nextInt(size);
+            randomPCB = processMap.values().toArray(new PCB[0])[randomIndex];
+        } while (!PhysicalMemoryAvailabilityCheck(randomPCB));
+
+        return randomPCB;
+    }
+
+    private boolean PhysicalMemoryAvailabilityCheck(PCB process){
+        for(int i = 0; i < process.virtualMemoryMappingTable.length; i++){
+            if (process.virtualMemoryMappingTable[i] != null &&
+                    process.virtualMemoryMappingTable[i].physicalPage >= 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int GetVictimPage(PCB process){
+        int randomIndex;
+        while (true){
+            randomIndex = new Random().nextInt(process.virtualMemoryMappingTable.length);
+            VirtualToPhysicalMapping mapping = process.virtualMemoryMappingTable[randomIndex];
+            // check if this virtual page is a valid victim
+            if (mapping != null && mapping.physicalPage >= 0) {
+                return randomIndex;
+            }
+        }
+    }
 }

@@ -15,13 +15,22 @@ public class Kernel extends Process implements Device  {
     // Simulated virtual file system used for handling file I/O operations
     private VirtualFileSystem vfs = new VirtualFileSystem();
 
+    // handle for the swap file (type must match open() return type)
+    public static int swapFileId = -1;
+    public static int nextSwapPage = 0;   // which 1KB block on disk we’ll use next
+
     // Tracks the allocation status of physical memory page, true = allocated, false = free
-    private boolean[] freePage = new boolean[1024];
+    public static boolean[] freePage = new boolean[1024];
 
     // Defines the size (in bytes) of a single memory page
     final private int sizeOfPage = 1024;
 
     public Kernel() {
+        // create the swap file
+        swapFileId = vfs.Open("file swapFile.txt");
+        if (swapFileId == -1) {
+            throw new RuntimeException("Failed to open swap file");
+        }
     }
     /**
      * Main kernel loop.
@@ -127,6 +136,7 @@ public class Kernel extends Process implements Device  {
                 throw new RuntimeException(e);
             }
         }
+
         // unscheduled the current process so that it never gets run again
         System.out.println("The Process is Terminated: " + scheduler.currentRunning.pid);
         // clean Up the device
@@ -137,11 +147,13 @@ public class Kernel extends Process implements Device  {
         scheduler.ClearMessageInQueue();
         // remove the process from the waiting message map
         scheduler.RemoveCurrentProcessFromWaitingProcessMap();
-        // remove the process from the queue
-        scheduler.currentRunning = null;
         // free the memory
         FreeAllMemory(GetCurrentRunningProcess());
+        // clear TLB
+        ClearTLB(Hardware.tlb);
 
+        // remove the process from the queue
+        scheduler.currentRunning = null;
         //schedule should choose something else to run
         SwitchProcess();
     }
@@ -246,12 +258,40 @@ public class Kernel extends Process implements Device  {
      */
     private void GetMapping(int virtualPage) {
         PCB p = GetCurrentRunningProcess();
-        int physicalPage = p.virtualMemoryMappingTable[virtualPage];
-        if (physicalPage == -1) {
-            System.out.println("Segment Fault");
-            Exit();
-            return;
+
+        if (p.virtualMemoryMappingTable[virtualPage] == null) {
+            throw new RuntimeException("Virtual memory mapping not found in scheduler");
         }
+
+        int physicalPage = p.virtualMemoryMappingTable[virtualPage].physicalPage;
+
+        // this virtual memory page does not have physical page for it
+        if (physicalPage == -1) {
+            // find a physical page in the “in use” array and assign it
+            if (AvailablePhysicalPages(freePage) > 0){
+                physicalPage = AvailablePhysicalPageArrayNumber();
+                freePage[physicalPage] = true;
+
+                // Assign the free frame to the virtual page
+                p.virtualMemoryMappingTable[virtualPage].physicalPage = physicalPage;
+
+                // --- load from disk or zero fill ---
+                if (p.virtualMemoryMappingTable[virtualPage].diskPage != -1) {
+                    int offset = p.virtualMemoryMappingTable[virtualPage].diskPage * sizeOfPage;
+                    vfs.Seek(swapFileId, offset);
+                    byte[] buffer = vfs.Read(swapFileId, sizeOfPage);
+                    Hardware.WritePhysicalMemory(physicalPage, buffer);
+                } else {
+                    byte[] zeros = new byte[sizeOfPage];
+                    Hardware.WritePhysicalMemory(physicalPage, zeros);
+                }
+            }
+            // do a page swap to free one up
+            else{
+                physicalPage = PageSwap(p, virtualPage);
+            }
+        }
+
         int num = new Random().nextInt(2);
         Hardware.tlb[num][0] = virtualPage;
         Hardware.tlb[num][1] = physicalPage;
@@ -274,10 +314,13 @@ public class Kernel extends Process implements Device  {
         int result, end;
         PCB p = GetCurrentRunningProcess();
 
+        /*
         // terminate if physical page not enough
         if (AvailablePhysicalPages(freePage) < numberOfPages) {
             throw new RuntimeException("Free physical page is too small");
         }
+
+         */
 
         // find the right hole in the virtual memory mapping table
         // record the start of the virtual memory index in the array (virtualMemoryMappingTable)
@@ -287,6 +330,11 @@ public class Kernel extends Process implements Device  {
         result = start;
         end = start + numberOfPages;
 
+        for (int i = start; i < end; i++) {
+            p.virtualMemoryMappingTable[i] = new VirtualToPhysicalMapping();
+        }
+
+        /*
         for (int i = 0; i < freePage.length; i++){
             if (!freePage[i]){
                 // assigning the virtual memory index to that physical memory page (changing the boolean array value)
@@ -300,6 +348,7 @@ public class Kernel extends Process implements Device  {
                 return result * sizeOfPage;
             }
         }
+         */
 
         System.out.println("Allocated Memory Not Found");
         return -1;
@@ -327,9 +376,12 @@ public class Kernel extends Process implements Device  {
         // free the virtual table
         // free the boolean array of physical memory address
         for (int i = 0; i < numberOfPages; i++) {
-            physicalPage = p.virtualMemoryMappingTable[start + i];
-            p.virtualMemoryMappingTable[start + i] = -1;
-            freePage[physicalPage] = false;
+            physicalPage = p.virtualMemoryMappingTable[start + i].physicalPage;
+            p.virtualMemoryMappingTable[start + i] = null;
+            // if physical memory allocated, free it otherwise skip it
+            if (physicalPage != -1) {
+                freePage[physicalPage] = false;
+            }
         }
         return true;
     }
@@ -339,13 +391,27 @@ public class Kernel extends Process implements Device  {
      * Resets both the process's virtual memory mapping table and the global
      * physical memory tracking array, effectively releasing all memory pages.
      *
-     * @param currentlyRunning the PCB of the process whose memory should be freed
+     * @param p the PCB of the process whose memory should be freed
      */
-    private void FreeAllMemory(PCB currentlyRunning) {
-        if (currentlyRunning != null) {
-            Arrays.fill(currentlyRunning.virtualMemoryMappingTable, -1);
-            Arrays.fill(freePage, false);
+    private void FreeAllMemory(PCB p) {
+        if (p == null){
+            return;
         }
+
+        for (int i = 0; i < p.virtualMemoryMappingTable.length; i++) {
+            VirtualToPhysicalMapping map = p.virtualMemoryMappingTable[i];
+
+            if (map != null) {
+                // free physical memory if used
+                if (map.physicalPage != -1) {
+                    freePage[map.physicalPage] = false;
+                }
+
+                // delete virtual→physical entry
+                p.virtualMemoryMappingTable[i] = null;
+            }
+        }
+
     }
 
     /**
@@ -456,7 +522,7 @@ public class Kernel extends Process implements Device  {
     private int AllocateMemoryInVirtualPage(PCB currentlyRunning, int numberOfPages) {
         int emptyPage = 0;
         for (int i = 0; i < currentlyRunning.virtualMemoryMappingTable.length; i++) {
-            if (currentlyRunning.virtualMemoryMappingTable[i] == -1) {
+            if (currentlyRunning.virtualMemoryMappingTable[i] == null) {
                 emptyPage++;
             }
             else{
@@ -500,5 +566,55 @@ public class Kernel extends Process implements Device  {
             if (!b) count++;
         }
         return count;
+    }
+
+    private int AvailablePhysicalPageArrayNumber(){
+        int result;
+        for (int i = 0; i < freePage.length; i++) {
+            if (!freePage[i]) {
+                result = i;
+                return result;
+            }
+        }
+        return -1;
+    }
+
+    private int PageSwap(PCB p, int virtualPage){
+        // do a page swap to free one up
+        PCB randomPCB = scheduler.GetRandomProcesss();  // victim process
+        int victimPage = scheduler.GetVictimPage(randomPCB);    // victim page in that victim process
+        int physicalPage = randomPCB.virtualMemoryMappingTable[victimPage].physicalPage;
+
+        if (randomPCB.virtualMemoryMappingTable[victimPage].diskPage == -1) {
+            randomPCB.virtualMemoryMappingTable[victimPage].diskPage = nextSwapPage++;
+        }
+        // write the victim's data into disk(swap file) - save victim's data in disk
+        int offset = randomPCB.virtualMemoryMappingTable[victimPage].diskPage * sizeOfPage;
+        vfs.Seek(swapFileId, offset);
+        byte[] data = Hardware.ReadPhysicalMemory(physicalPage);
+        vfs.Write(swapFileId, data);
+
+        // set victim page to -1
+        randomPCB.virtualMemoryMappingTable[victimPage].physicalPage = -1;
+        // assign that physical page to ours
+        p.virtualMemoryMappingTable[virtualPage].physicalPage = physicalPage;
+
+
+        //  if data was previously written to disk (the on disk page number is not -1)
+        if (p.virtualMemoryMappingTable[virtualPage].diskPage != -1){
+            //  then we have to load the old data in and populate the physical page.
+            offset = p.virtualMemoryMappingTable[virtualPage].diskPage * sizeOfPage;
+            vfs.Seek(swapFileId, offset);
+
+            byte[] buffer = buffer = vfs.Read(swapFileId, sizeOfPage);
+            Hardware.WritePhysicalMemory(p.virtualMemoryMappingTable[virtualPage].physicalPage, buffer);
+        }
+        else{
+            // zero-fill the new physical frame
+            byte[] zeros = new byte[sizeOfPage];
+            Hardware.WritePhysicalMemory(p.virtualMemoryMappingTable[virtualPage].physicalPage, zeros);
+        }
+
+        return physicalPage;
     }
 }
