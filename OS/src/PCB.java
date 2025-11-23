@@ -69,7 +69,7 @@ public class PCB { // Process Control Block
         this.nameOfProcess = up.getClass().getSimpleName();
         Arrays.fill(vfsID, -1);                             // Initialize all VFS handles to -1 (unused)
         virtualMemoryMappingTable = new VirtualToPhysicalMapping[100];
-        Arrays.fill(virtualMemoryMappingTable, -1);         // Initialized TLB entries to -1
+        Arrays.fill(virtualMemoryMappingTable, null);         // Initialized TLB entries to -1
     }
 
     /**

@@ -24,7 +24,6 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
          */
-
         /*
         // Tests For Device Assignment
         // Multiple Processes access same device, appending new text to the same files open below
@@ -35,8 +34,6 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestDeviceRandom_1(), OS.PriorityType.realtime);
 
          */
-
-
         /*
         // Test for Message Assignment
         // Ping-Pong Test
@@ -50,14 +47,18 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
         OS.CreateProcess(new GoodbyeWorld(), OS.PriorityType.realtime);
          */
-
-
+        /*
         // Test for Memory Assignment
         OS.CreateProcess(new TestMemory1_WriteAndRead(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory2_AllocateMemoryTwice(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory3_FreeAndReuseMemory(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory4_VirtualHoleReuse(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory5_VirtualPaging(), OS.PriorityType.interactive);
+         */
+
+
+        OS.CreateProcess(new TestMemory6_PageSwapBasic(), OS.PriorityType.realtime);
+        OS.CreateProcess(new TestMemory7_SwapStorm(), OS.PriorityType.realtime);
 
 
         try {

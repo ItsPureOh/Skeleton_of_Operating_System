@@ -349,9 +349,13 @@ public class Kernel extends Process implements Device  {
             }
         }
          */
+        return result * sizeOfPage;
 
+        /*
         System.out.println("Allocated Memory Not Found");
         return -1;
+
+         */
     }
 
     /**
@@ -583,30 +587,32 @@ public class Kernel extends Process implements Device  {
         // do a page swap to free one up
         PCB randomPCB = scheduler.GetRandomProcesss();  // victim process
         int victimPage = scheduler.GetVictimPage(randomPCB);    // victim page in that victim process
-        int physicalPage = randomPCB.virtualMemoryMappingTable[victimPage].physicalPage;
+        VirtualToPhysicalMapping victimMap = randomPCB.virtualMemoryMappingTable[victimPage];
+        int physicalPage = victimMap.physicalPage;
 
-        if (randomPCB.virtualMemoryMappingTable[victimPage].diskPage == -1) {
-            randomPCB.virtualMemoryMappingTable[victimPage].diskPage = nextSwapPage++;
+        if (victimMap.diskPage == -1) {
+            victimMap.diskPage = nextSwapPage++;
         }
+
         // write the victim's data into disk(swap file) - save victim's data in disk
-        int offset = randomPCB.virtualMemoryMappingTable[victimPage].diskPage * sizeOfPage;
+        int offset = victimMap.diskPage * sizeOfPage;
         vfs.Seek(swapFileId, offset);
         byte[] data = Hardware.ReadPhysicalMemory(physicalPage);
         vfs.Write(swapFileId, data);
 
         // set victim page to -1
-        randomPCB.virtualMemoryMappingTable[victimPage].physicalPage = -1;
-        // assign that physical page to ours
-        p.virtualMemoryMappingTable[virtualPage].physicalPage = physicalPage;
+        victimMap.physicalPage = -1;
 
+        // now assign this physical frame to the faulting page
+        VirtualToPhysicalMapping myMap = p.virtualMemoryMappingTable[virtualPage];
+        myMap.physicalPage = physicalPage;
 
         //  if data was previously written to disk (the on disk page number is not -1)
-        if (p.virtualMemoryMappingTable[virtualPage].diskPage != -1){
+        if (myMap.diskPage != -1){
             //  then we have to load the old data in and populate the physical page.
-            offset = p.virtualMemoryMappingTable[virtualPage].diskPage * sizeOfPage;
+            offset = myMap.diskPage * sizeOfPage;
             vfs.Seek(swapFileId, offset);
-
-            byte[] buffer = buffer = vfs.Read(swapFileId, sizeOfPage);
+            byte[] buffer = vfs.Read(swapFileId, sizeOfPage);
             Hardware.WritePhysicalMemory(p.virtualMemoryMappingTable[virtualPage].physicalPage, buffer);
         }
         else{
