@@ -59,6 +59,7 @@ public class Init extends UserlandProcess{
 
         OS.CreateProcess(new TestMemory6_PageSwapBasic(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMemory7_SwapStorm(), OS.PriorityType.realtime);
+        OS.CreateProcess(new TestMemory8_MultiProcessSwap(), OS.PriorityType.realtime);
 
 
         try {

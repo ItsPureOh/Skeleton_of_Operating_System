@@ -374,18 +374,23 @@ public class Kernel extends Process implements Device  {
         int start = pointer / sizeOfPage;
         // get process
         PCB p = GetCurrentRunningProcess();
-        //
+
         int physicalPage;
 
         // free the virtual table
         // free the boolean array of physical memory address
         for (int i = 0; i < numberOfPages; i++) {
-            physicalPage = p.virtualMemoryMappingTable[start + i].physicalPage;
-            p.virtualMemoryMappingTable[start + i] = null;
-            // if physical memory allocated, free it otherwise skip it
-            if (physicalPage != -1) {
-                freePage[physicalPage] = false;
+            VirtualToPhysicalMapping map = p.virtualMemoryMappingTable[i];
+
+            if (map != null) {
+                if (map.physicalPage != -1) {
+                    freePage[map.physicalPage] = false;
+                }
             }
+            // clear both physical + disk reference
+            map.physicalPage = -1;
+            map.diskPage = -1;
+            p.virtualMemoryMappingTable[start + i] = null;
         }
         return true;
     }
@@ -609,6 +614,11 @@ public class Kernel extends Process implements Device  {
 
         //  if data was previously written to disk (the on disk page number is not -1)
         if (myMap.diskPage != -1){
+
+            if (myMap.diskPage == -1) {
+                myMap.diskPage = nextSwapPage++;
+            }
+
             //  then we have to load the old data in and populate the physical page.
             offset = myMap.diskPage * sizeOfPage;
             vfs.Seek(swapFileId, offset);
