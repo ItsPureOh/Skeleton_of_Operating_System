@@ -614,11 +614,6 @@ public class Kernel extends Process implements Device  {
 
         //  if data was previously written to disk (the on disk page number is not -1)
         if (myMap.diskPage != -1){
-
-            if (myMap.diskPage == -1) {
-                myMap.diskPage = nextSwapPage++;
-            }
-
             //  then we have to load the old data in and populate the physical page.
             offset = myMap.diskPage * sizeOfPage;
             vfs.Seek(swapFileId, offset);
