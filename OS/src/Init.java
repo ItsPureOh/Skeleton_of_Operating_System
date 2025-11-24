@@ -13,17 +13,20 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestPriorities("bg"), OS.PriorityType.background);
         OS.CreateProcess(new TestPriorities("ia"), OS.PriorityType.interactive);
          */
+
         /*
         // Create additional realtime processes for testing demotion/sleep behavior
         OS.CreateProcess(new TestRealtimeBusy(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.realtime);
          */
+
         /*
         // Create Testcase for that after process awaken, it put that back to correct queue
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestRealtimeSleeper(), OS.PriorityType.background);
          */
+
         /*
         // Tests For Device Assignment
         // Multiple Processes access same device, appending new text to the same files open below
@@ -32,8 +35,8 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestDeviceFile_1(), OS.PriorityType.realtime);
         // Check all functionality of the device with the random seeds
         OS.CreateProcess(new TestDeviceRandom_1(), OS.PriorityType.realtime);
-
          */
+
         /*
         // Test for Message Assignment
         // Ping-Pong Test
@@ -42,13 +45,12 @@ public class Init extends UserlandProcess{
         // Network - like Test
         OS.CreateProcess(new TestMessage_MessageA(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMessage_MessageB(), OS.PriorityType.realtime);
-
-
         OS.CreateProcess(new HelloWorld(), OS.PriorityType.realtime);
         OS.CreateProcess(new GoodbyeWorld(), OS.PriorityType.realtime);
          */
+
         /*
-        // Test for Memory Assignment
+        // Test for Paging Assignment
         OS.CreateProcess(new TestMemory1_WriteAndRead(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory2_AllocateMemoryTwice(), OS.PriorityType.interactive);
         OS.CreateProcess(new TestMemory3_FreeAndReuseMemory(), OS.PriorityType.interactive);
@@ -56,11 +58,11 @@ public class Init extends UserlandProcess{
         OS.CreateProcess(new TestMemory5_VirtualPaging(), OS.PriorityType.interactive);
          */
 
-
+        // Test for Memory Assigment
         OS.CreateProcess(new TestMemory6_PageSwapBasic(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMemory7_SwapStorm(), OS.PriorityType.realtime);
         OS.CreateProcess(new TestMemory8_MultiProcessSwap(), OS.PriorityType.realtime);
-
+        OS.CreateProcess(new TestMemory9_ModifyAfterSwap(), OS.PriorityType.realtime);
 
         try {
             Thread.sleep(50);

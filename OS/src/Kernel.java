@@ -244,18 +244,32 @@ public class Kernel extends Process implements Device  {
     }
 
     /**
-     * Handles a TLB miss by retrieving the mapping between a virtual page
-     * and its corresponding physical page from the current process's
-     * page table (virtualMemoryMappingTable).
+     * Resolves a TLB miss for the given virtual page.
      *
-     * If the requested virtual page is invalid (unmapped), this function
-     * reports a segmentation fault and terminates the process.
+     * Steps:
+     *  1. Verify the virtual page has a valid VirtualToPhysicalMapping entry.
+     *     If not, this is an invalid access → segmentation fault.
      *
-     * Once a valid mapping is found, a random TLB slot is chosen and updated
-     * with the new virtual-to-physical page mapping.
+     *  2. If the virtual page has no physical frame assigned (physicalPage == -1):
+     *        • If a free physical page exists:
+     *              - Allocate it.
+     *              - If the page has been swapped out before (diskPage != -1),
+     *                load its old contents from the swap file.
+     *              - Otherwise, zero-fill the new frame.
      *
-     * @param virtualPage the virtual page number that caused the TLB miss
+     *        • If NO free physical pages exist:
+     *              - Invoke PageSwap(...) to evict a victim page and reuse its frame.
+     *
+     *  3. Insert (virtualPage → physicalPage) into a random TLB slot.
+     *
+     * Notes:
+     *  - This function performs lazy physical allocation: frames are created only
+     *    when a page is first accessed.
+     *  - Swapped-out pages are restored from disk; never-saved pages are zero-initialized.
+     *
+     * @param virtualPage the virtual page number that triggered the TLB miss
      */
+
     private void GetMapping(int virtualPage) {
         PCB p = GetCurrentRunningProcess();
 
@@ -298,17 +312,26 @@ public class Kernel extends Process implements Device  {
     }
 
     /**
-     * Allocates a block of virtual memory for the currently running process.
-     * Determines how many pages are required, finds a suitable range of
-     * consecutive virtual pages, and maps them to available physical pages.
+     * Allocates a contiguous range of virtual pages for the current process.
      *
-     * The function updates both the process's virtual memory mapping table
-     * and the global physical page tracking array.
+     * Steps:
+     *  1. Compute how many pages the requested byte size requires.
+     *  2. Search the process’s virtualMemoryMappingTable for a free run of
+     *     consecutive virtual pages large enough to hold the request.
+     *  3. For each allocated virtual page, create a new VirtualToPhysicalMapping
+     *     object. (Physical mapping is NOT assigned here; it will be assigned later
+     *     on-demand during the first page fault.)
      *
-     * @param size the requested allocation size in bytes
-     * @return the starting virtual address of the allocated block,
-     *         or -1 if allocation fails
+     * Notes:
+     *  - This function only reserves virtual pages; it does NOT allocate physical
+     *    frames. Physical frames are provided lazily on page faults.
+     *  - Returns the virtual address (startPage * pageSize), or -1 if no suitable
+     *    virtual range exists.
+     *
+     * @param size  number of bytes requested by the process
+     * @return starting virtual address of the allocated block, or -1 on failure
      */
+
     private int AllocateMemory(int size) {
         int numberOfPages = size / sizeOfPage;
         int result, end;
@@ -380,17 +403,17 @@ public class Kernel extends Process implements Device  {
         // free the virtual table
         // free the boolean array of physical memory address
         for (int i = 0; i < numberOfPages; i++) {
-            VirtualToPhysicalMapping map = p.virtualMemoryMappingTable[i];
+            VirtualToPhysicalMapping map = p.virtualMemoryMappingTable[start + i];
 
             if (map != null) {
+                // clear both physical + disk reference
                 if (map.physicalPage != -1) {
                     freePage[map.physicalPage] = false;
+                    map.physicalPage = -1;
                 }
+                map.diskPage = -1;
+                p.virtualMemoryMappingTable[start + i] = null;
             }
-            // clear both physical + disk reference
-            map.physicalPage = -1;
-            map.diskPage = -1;
-            p.virtualMemoryMappingTable[start + i] = null;
         }
         return true;
     }
@@ -556,7 +579,7 @@ public class Kernel extends Process implements Device  {
     private void ClearTLB(int[][] tlb){
         for (int i = 0; i < tlb.length; i++) {
             for (int j = 0; j < tlb[i].length; j++) {
-                tlb[i][j] = 0;
+                tlb[i][j] = -1;
             }
         }
     }
@@ -577,6 +600,12 @@ public class Kernel extends Process implements Device  {
         return count;
     }
 
+    /**
+     * Scans the freePage[] bitmap for the first unused physical frame.
+     *
+     * @return index of the first free physical page (0–1023),
+     *         or -1 if no free physical memory remains.
+     */
     private int AvailablePhysicalPageArrayNumber(){
         int result;
         for (int i = 0; i < freePage.length; i++) {
@@ -588,6 +617,23 @@ public class Kernel extends Process implements Device  {
         return -1;
     }
 
+    /**
+     * Swaps out a victim page from a randomly chosen process and loads the
+     * requested virtual page into the freed physical frame.
+     *
+     * Steps:
+     *  1. Pick a victim process and a victim virtual page that is currently in RAM.
+     *  2. If the victim page has never been written to disk, assign a new disk slot.
+     *  3. Write the victim’s physical frame to its diskPage in the swap file.
+     *  4. Mark the victim page as no longer in physical memory.
+     *  5. Give the freed physical frame to the faulting process (myMap.physicalPage).
+     *  6. If the faulting page has old data on disk, load it into RAM.
+     *     Otherwise, zero-initialize the new physical frame.
+     *
+     * @param p            the process needing a physical frame
+     * @param virtualPage  the virtual page that triggered the page fault
+     * @return the physical frame number assigned to the faulting page
+     */
     private int PageSwap(PCB p, int virtualPage){
         // do a page swap to free one up
         PCB randomPCB = scheduler.GetRandomProcesss();  // victim process
@@ -608,7 +654,7 @@ public class Kernel extends Process implements Device  {
         // set victim page to -1
         victimMap.physicalPage = -1;
 
-        // now assign this physical frame to the faulting page
+        // assign this physical frame to the faulting page
         VirtualToPhysicalMapping myMap = p.virtualMemoryMappingTable[virtualPage];
         myMap.physicalPage = physicalPage;
 

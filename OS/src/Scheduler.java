@@ -442,6 +442,18 @@ public class Scheduler {
         waitingProcess.remove(currentRunning.pid);
     }
 
+    /**
+     * Selects a random process to use as a swap-out victim.
+     *
+     * Behavior:
+     * - Randomly selects a PCB from the process map.
+     * - Rejects processes that have no physical pages allocated.
+     * - Repeats until it finds a process that owns at least one physical page.
+     *
+     * Used for:
+     * - Swap-out victim selection in the paging system.
+     */
+
     public PCB GetRandomProcesss(){
         // get total number of processes
         int size = processMap.size();
@@ -456,6 +468,18 @@ public class Scheduler {
         return randomPCB;
     }
 
+    /**
+     * Determines whether the given process owns any physical pages.
+     *
+     * Returns true if:
+     * - The process has at least one virtual page mapped to a physical frame.
+     *
+     * Returns false if:
+     * - All pages are either unmapped or swapped out to disk only.
+     *
+     * Used by:
+     * - GetRandomProcesss() to ensure swap victims actually exist.
+     */
     private boolean PhysicalMemoryAvailabilityCheck(PCB process){
         for(int i = 0; i < process.virtualMemoryMappingTable.length; i++){
             if (process.virtualMemoryMappingTable[i] != null &&
@@ -466,6 +490,17 @@ public class Scheduler {
         return false;
     }
 
+    /**
+     * Selects a random virtual page from the process that is currently resident
+     * in physical memory so it can be evicted.
+     *
+     * Behavior:
+     * - Continuously selects random virtual page indices.
+     * - Returns the first index whose mapping exists AND has a valid physicalPage.
+     *
+     * Guarantees:
+     * - The returned page is always a valid swap-out candidate.
+     */
     public int GetVictimPage(PCB process){
         int randomIndex;
         while (true){

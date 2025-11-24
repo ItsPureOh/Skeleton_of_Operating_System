@@ -46,10 +46,14 @@ public class PCB { // Process Control Block
     // Stores incoming KernelMessage objects sent by other processes
     public LinkedList<KernelMessage> messageQueue = new LinkedList<>();
 
-    // Virtual memory mapping table for this process
-    // Each index represents a virtual page number, and the value is the corresponding physical page number
-    // A value of -1 indicates that the virtual page is not currently mapped
-    //public int[] virtualMemoryMappingTable = new int[100];
+    /*
+    Virtual memory mapping table for this process.
+    Each index represents a virtual page number (0–99).
+    The value stored is a VirtualToPhysicalMapping object containing:
+        - physicalPage : which physical frame the page occupies (-1 if not in RAM)
+        - diskPage     : which swap-file page stores its data (-1 if never written)
+    A null entry means the virtual page has never been allocated by the process.
+     */
     public VirtualToPhysicalMapping[] virtualMemoryMappingTable;
 
     /**
